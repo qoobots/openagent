@@ -1,0 +1,145 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /drug_research_agent
+
+spring:
+  application:
+    name: drug-research-agent
+  profiles:
+    active: dev
+
+  # 数据源配置 - PostgreSQL 16
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/openagent_drug_research_agent
+    username: postgres
+    password: postgres
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+
+  # Redis配置
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      database: 0
+      timeout: 5000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+          max-wait: -1ms
+
+  # Kafka配置
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      acks: all
+      retries: 3
+    consumer:
+      group-id: ${spring.application.name}-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+
+# MyBatis Plus配置
+mybatis-plus:
+  mapper-locations: classpath*:/mapper/**/*.xml
+  type-aliases-package: com.qoobot.agent.drug-research-agent.entity
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
+    default-executor-type: REUSE
+  global-config:
+    db-config:
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+
+# Agent配置
+agent:
+  id: drug-research-agent
+  name: Drug Research Agent
+  description: 药物研发协同AI Agent系统
+  version: 1.0.0
+
+  # 向量数据库配置 - PostgreSQL + pgvector
+  vector:
+    enabled: true
+    dimension: 1536
+    index-type: ivfflat
+    metric-type: cosine
+    index-lists: 100
+
+  # 模型配置
+  model:
+    provider: openai
+    model-name: gpt-4
+    max-tokens: 2000
+    temperature: 0.7
+
+  # 工具配置
+  tools:
+    enabled: true
+    mcp:
+      enabled: true
+      endpoint: http://localhost:8080/mcp
+
+  # 性能配置
+  performance:
+    max-concurrent-requests: 100
+    thread-pool-size: 20
+    cache:
+      enabled: true
+      max-size: 1000
+      ttl-seconds: 3600
+
+# Actuator配置
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+      show-components: always
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+    tags:
+      application: ${spring.application.name}
+
+# OpenAPI配置
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+    enabled: true
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+    tags-sorter: alpha
+    operations-sorter: alpha
+
+# 日志配置
+logging:
+  level:
+    root: INFO
+    com.qoobot.agent.drug-research-agent: DEBUG
+    com.pgvector: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: logs/drug-research-agent.log
+    max-size: 100MB
+    max-history: 30

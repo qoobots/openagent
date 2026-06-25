@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <annotationProcessing>
+      <profile default="true" name="Default" enabled="true" />
+      <profile name="Maven default annotation processors profile" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+      </profile>
+      <profile name="Annotation profile for openagent" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="false">
+          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.42/lombok-1.18.42.jar" />
+        </processorPath>
+        <module name="drug-research-agent" />
+        <module name="intelligent-ops-agent" />
+        <module name="retail-agent" />
+        <module name="investment-advisor-agent" />
+        <module name="semiconductor-optimization-agent" />
+        <module name="construction-safety-agent" />
+        <module name="power-grid-agent" />
+        <module name="power-trading-agent" />
+        <module name="warehouse-scheduling-agent" />
+        <module name="education-agent" />
+        <module name="intelligent-traffic-agent" />
+        <module name="cross-border-logistics-agent" />
+        <module name="agricultural-pest-agent" />
+        <module name="nuclear-maintenance-agent" />
+        <module name="hr-agent" />
+        <module name="legal-agent" />
+        <module name="customer-service-agent" />
+        <module name="financial-pricing-agent" />
+        <module name="marketing-planning-agent" />
+        <module name="medical-diagnosis-agent" />
+        <module name="supply-chain-agent" />
+        <module name="agent-core" />
+        <module name="medical-device-agent" />
+        <module name="industrial-quality-agent" />
+      </profile>
+    </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="agent-systems" target="21" />
+      <module name="government-enterprises" target="21" />
+    </bytecodeTargetLevel>
+  </component>
+  <component name="JavacSettings">
+    <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="agent-core" options="-parameters -parameters -parameters -XDignore.symbol.file" />
+      <module name="agent-systems" options="-parameters -parameters -parameters -XDignore.symbol.file" />
+      <module name="agricultural-pest-agent" options="-parameters -parameters -parameters -XDignore.symbol.file" />
+      <module name="construction-safety-agent" options="-parameters -parameters -parameters -XDignore.symbol.file" />
+      <module name="cross-border-logistics-agent" options="-parameters -parameters -parameters -XDignore.symbol.file" />
+      <module name="customer-service-agent" options="-parameters -parameters -parameters -XDignore.symbol.file" />
+      <module name="drug-research-agent" options="-parameters -parameters -parameters -XDignore.symbol.file" />
+      <module name="education-agent" options="-parameters -parameters -parameters -XDignore.symbol.file" />
+      <module name="financial-pricing-agent" options="-parameters -parameters -parameters -XDignore.symbol.file" />
+      <module name="government-enterprises" options="-parameters -parameters -parameters -XDignore.symbol.file" />
+      <module name="hr-agent" options="-parameters -parameters -parameters -XDignore.symbol.file" />
+      <module name="industrial-quality-agent" options="-parameters -parameters -parameters -XDignore.symbol.file" />
+      <module name="intelligent-ops-agent" options="-parameters -parameters -parameters -XDignore.symbol.file" />
+      <module name="intelligent-traffic-agent" options="-parameters -parameters -parameters -XDignore.symbol.file" />
+      <module name="investment-advisor-agent" options="-parameters -parameters -parameters -XDignore.symbol.file" />
+      <module name="legal-agent" options="-parameters -parameters -parameters -XDignore.symbol.file" />
+      <module name="marketing-planning-agent" options="-parameters -parameters -parameters -XDignore.symbol.file" />
+      <module name="medical-device-agent" options="-parameters -parameters -parameters -XDignore.symbol.file" />
+      <module name="medical-diagnosis-agent" options="-parameters -parameters -parameters -XDignore.symbol.file" />
+      <module name="nuclear-maintenance-agent" options="-parameters -parameters -parameters -XDignore.symbol.file" />
+      <module name="openagent" options="-parameters -parameters -parameters -XDignore.symbol.file" />
+      <module name="power-grid-agent" options="-parameters -parameters -parameters -XDignore.symbol.file" />
+      <module name="power-trading-agent" options="-parameters -parameters -parameters -XDignore.symbol.file" />
+      <module name="retail-agent" options="-parameters -parameters -parameters -XDignore.symbol.file" />
+      <module name="semiconductor-optimization-agent" options="-parameters -parameters -parameters -XDignore.symbol.file" />
+      <module name="supply-chain-agent" options="-parameters -parameters -parameters -XDignore.symbol.file" />
+      <module name="warehouse-scheduling-agent" options="-parameters -parameters -parameters -XDignore.symbol.file" />
+    </option>
+  </component>
+</project>

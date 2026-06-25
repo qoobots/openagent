@@ -1,0 +1,171 @@
+# 混合 AI 架构配置示例
+# LangChain4J + Spring AI 2.0 + Spring AI Alibaba
+
+agent:
+  ai:
+    # 默认框架选择: langchain4j, spring-ai, spring-ai-alibaba
+    default-framework: spring-ai
+
+    # 切换策略
+    # - always: 始终使用默认框架
+    # - fallback: 失败时降级到备用框架
+    # - load-balance: 负载均衡（轮询）
+    # - agent-specific: 根据 Agent 类型选择框架
+    # - task-aware: 根据任务类型智能选择
+    switch-strategy: fallback
+
+    # LangChain4J 配置
+    langchain4j:
+      enabled: true
+      default-model: openai
+      weight: 0.3  # 负载均衡权重
+      timeout:
+        connect-timeout: 10000
+        read-timeout: 60000
+        write-timeout: 60000
+      openai:
+        api-key: ${LANGCHAIN4J_OPENAI_API_KEY:your-openai-api-key}
+        base-url: ${LANGCHAIN4J_OPENAI_BASE_URL:https://api.openai.com/v1}
+        model-name: gpt-4o-mini
+        temperature: 0.7
+        max-tokens: 2000
+        max-retries: 3
+
+    # Spring AI 配置
+    spring-ai:
+      enabled: true
+      provider: openai
+      weight: 0.4  # 负载均衡权重
+      timeout:
+        connect-timeout: 10000
+        read-timeout: 60000
+        write-timeout: 60000
+
+    # Spring AI Alibaba 配置
+    spring-ai-alibaba:
+      enabled: true
+      model-name: qwen-plus
+      weight: 0.3  # 负载均衡权重
+      timeout:
+        connect-timeout: 10000
+        read-timeout: 60000
+        write-timeout: 60000
+
+    # Agent 特定配置
+    agent-specific:
+      # Agent 类型与框架映射
+      framework-mapping:
+        drug-research-agent: spring-ai
+        medical-diagnosis-agent: spring-ai-alibaba
+        agricultural-pest-agent: langchain4j
+        financial-pricing-agent: spring-ai
+        investment-advisor-agent: spring-ai-alibaba
+
+      # 任务类型与框架映射
+      task-mapping:
+        chat: spring-ai
+        retrieval: spring-ai-alibaba
+        analysis: langchain4j
+        generation: spring-ai
+        translation: spring-ai-alibaba
+
+      # 优先级配置
+      priority:
+        drug-research-agent: 1
+        medical-diagnosis-agent: 2
+        financial-pricing-agent: 1
+        investment-advisor-agent: 2
+
+    # 监控配置
+    monitoring:
+      enabled: true
+      performance-threshold: 5000  # 毫秒
+      max-retries: 3
+      circuit-breaker-threshold: 0.5  # 50% 失败率触发熔断
+      circuit-breaker-half-open-requests: 5
+
+# Spring AI 配置
+spring:
+  ai:
+    # OpenAI 配置
+    openai:
+      api-key: ${OPENAI_API_KEY:your-openai-api-key}
+      base-url: ${OPENAI_BASE_URL:https://api.openai.com/v1}
+      chat:
+        model: gpt-4o-mini
+        temperature: 0.7
+        max-tokens: 2000
+      embedding:
+        options:
+          model: text-embedding-3-small
+      enabled: true
+
+    # 阿里云 DashScope 配置
+    dashscope:
+      api-key: ${DASHSCOPE_API_KEY:your-dashscope-api-key}
+      base-url: https://dashscope.aliyuncs.com/compatible-mode/v1
+      chat:
+        model: qwen-plus
+        temperature: 0.7
+        max-tokens: 2000
+      embedding:
+        options:
+          model: text-embedding-v3
+      enabled: true
+
+    # 向量存储配置
+    vectorstore:
+      pgvector:
+        host: ${PGHOST:localhost}
+        port: ${PGPORT:5432}
+        database: ${PGDATABASE:openagent_drug_research_agent}
+        username: ${PGUSER:postgres}
+        password: ${PGPASSWORD:123456}
+        schema: public
+        table: spring_ai_vector_store
+        initialize-schema: true
+        dimension: 1536
+        index-type: ivfflat
+        index-lists: 100
+        distance-type: cosine
+
+    # RAG 配置
+    rag:
+      enabled: true
+      top-k: 5
+      threshold: 0.7
+      chunk-size: 1000
+      chunk-overlap: 200
+
+# 日志配置
+logging:
+  level:
+    root: INFO
+    com.qoobot: DEBUG
+    com.qoobot.agent.core.hybrid: DEBUG
+    org.springframework.ai: INFO
+    dev.langchain4j: INFO
+    org.springframework.ai.chat: INFO
+    org.springframework.ai.vectorstore: INFO
+
+# 管理端点
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus,ai
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+    tags:
+      application: ${spring.application.name}
+
+# 应用配置
+agent:
+  id: drug-research-agent
+  name: 药物研发协同智能体
+  description: 专注于药物研发流程优化、化合物筛选、临床试验管理的AI智能体

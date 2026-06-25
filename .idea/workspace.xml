@@ -1,0 +1,305 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="cc512a69-7862-47f6-a2e8-3701b02b762f" name="更改" comment="fix" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;qoobot-com&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/qoobot-com/openagent.git&quot;,
+    &quot;accountId&quot;: &quot;5415de4d-f004-4096-b10f-a53db0db6890&quot;
+  }
+}</component>
+  <component name="MavenRunner">
+    <option name="skipTests" value="true" />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 2
+}</component>
+  <component name="ProjectId" id="39hypAQxaK3Nk69l0CeYXk2ucQZ" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Maven. [org.apache.maven.plugins:maven-archetype-plugin:RELEASE:generate].executor&quot;: &quot;Run&quot;,
+    &quot;Maven.openagent [clean,install].executor&quot;: &quot;Run&quot;,
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;Notification.DisplayName-DoNotAsk-DatabaseConfigFileWatcher.found&quot;: &quot;发现新的/更新的数据库配置&quot;,
+    &quot;Notification.DoNotAsk-DatabaseConfigFileWatcher.found&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;D:/05workspaces/openagent&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;SDK&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.0&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.0&quot;,
+    &quot;run.configurations.included.in.services&quot;: &quot;true&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;
+  }
+}</component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="D:\05workspaces\openagent" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="D:\05workspaces\openagent" />
+      <recent name="D:\05workspaces\openagent\docs" />
+    </key>
+  </component>
+  <component name="RunAnythingCache">
+    <option name="myCommands">
+      <command value="mvn clean install" />
+    </option>
+  </component>
+  <component name="RunManager" selected="Spring Boot.AgriculturalPestAgentApplication">
+    <configuration default="true" type="KotlinStandaloneScriptRunConfigurationType">
+      <module name="openagent" />
+      <option name="filePath" />
+      <method v="2" />
+    </configuration>
+    <configuration name="AgriculturalPestAgentApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="agricultural-pest-agent" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.qoobot.agent.agricultural.AgriculturalPestAgentApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Application (1)" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="retail-agent" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.qoobot.agent.retail_agent.Application" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Application (2)" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="education-agent" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.qoobot.agent.education_agent.Application" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Application (3)" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="hr-agent" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.qoobot.agent.hr_agent.Application" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Application" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="legal-agent" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.qoobot.agent.legal_agent.Application" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="ConstructionSafetyAgentApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="construction-safety-agent" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.qoobot.agent.construction.ConstructionSafetyAgentApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="CrossBorderLogisticsAgentApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="cross-border-logistics-agent" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.qoobot.agent.cross.CrossBorderLogisticsAgentApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="CustomerServiceAgentApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="customer-service-agent" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.qoobot.agent.customer.CustomerServiceAgentApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="DrugResearchAgentApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="drug-research-agent" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.qoobot.agent.drug.DrugResearchAgentApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="FinancialPricingAgentApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="financial-pricing-agent" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.qoobot.agent.financial.FinancialPricingAgentApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="IndustrialQualityAgentApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="industrial-quality-agent" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.qoobot.agent.industrial.IndustrialQualityAgentApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="IntelligentOpsAgentApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="intelligent-ops-agent" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.qoobot.agent.intelligent.IntelligentOpsAgentApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="IntelligentTrafficAgentApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="intelligent-traffic-agent" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.qoobot.agent.intelligent.IntelligentTrafficAgentApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="InvestmentAdvisorAgentApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="investment-advisor-agent" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.qoobot.agent.investment.InvestmentAdvisorAgentApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="MarketingPlanningAgentApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="marketing-planning-agent" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.qoobot.agent.marketing.MarketingPlanningAgentApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="MedicalDeviceAgentApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="medical-device-agent" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.qoobot.agent.medical.MedicalDeviceAgentApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="MedicalDiagnosisAgentApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="medical-diagnosis-agent" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.qoobot.agent.medical.MedicalDiagnosisAgentApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="NuclearMaintenanceAgentApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="nuclear-maintenance-agent" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.qoobot.agent.nuclear.NuclearMaintenanceAgentApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="PowerGridAgentApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="power-grid-agent" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.qoobot.agent.power.PowerGridAgentApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="PowerTradingAgentApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="power-trading-agent" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.qoobot.agent.power.PowerTradingAgentApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="SemiconductorOptimizationAgentApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="semiconductor-optimization-agent" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.qoobot.agent.semiconductor.SemiconductorOptimizationAgentApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="SupplyChainAgentApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="supply-chain-agent" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.qoobot.agent.supply.SupplyChainAgentApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="WarehouseSchedulingAgentApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="warehouse-scheduling-agent" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.qoobot.agent.warehouse.WarehouseSchedulingAgentApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-jdk-30f59d01ecdd-2fc7cc6b9a17-intellij.indexing.shared.core-IU-253.30387.90" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="默认任务">
+      <changelist id="cc512a69-7862-47f6-a2e8-3701b02b762f" name="更改" comment="" />
+      <created>1771162778140</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1771162778140</updated>
+      <workItem from="1771162779322" duration="2779000" />
+      <workItem from="1771166941437" duration="8837000" />
+      <workItem from="1771176465686" duration="469000" />
+      <workItem from="1771177322514" duration="88000" />
+      <workItem from="1771177430010" duration="94000" />
+      <workItem from="1771177543872" duration="1002000" />
+      <workItem from="1771178577865" duration="65000" />
+      <workItem from="1771208355941" duration="748000" />
+      <workItem from="1771209912144" duration="159000" />
+      <workItem from="1771272909599" duration="1177000" />
+    </task>
+    <task id="LOCAL-00001" summary="create agent">
+      <option name="closed" value="true" />
+      <created>1771175061732</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1771175061732</updated>
+    </task>
+    <task id="LOCAL-00002" summary="fix">
+      <option name="closed" value="true" />
+      <created>1771175414698</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1771175414698</updated>
+    </task>
+    <task id="LOCAL-00003" summary="fix">
+      <option name="closed" value="true" />
+      <created>1771176561771</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1771176561771</updated>
+    </task>
+    <task id="LOCAL-00004" summary="fix">
+      <option name="closed" value="true" />
+      <created>1771178196936</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1771178196936</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
+    <servers />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="create agent" />
+    <MESSAGE value="fix" />
+    <option name="LAST_COMMIT_MESSAGE" value="fix" />
+  </component>
+</project>

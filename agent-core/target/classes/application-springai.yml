@@ -1,0 +1,97 @@
+# Spring AI 配置示例
+# 将此配置复制到各个 Agent 模块的 application.yml 中
+
+spring:
+  # AI 配置
+  ai:
+    # OpenAI 配置
+    openai:
+      api-key: ${OPENAI_API_KEY:your-openai-api-key}
+      base-url: ${OPENAI_BASE_URL:https://api.openai.com/v1}
+      chat:
+        model: gpt-4o-mini
+        temperature: 0.7
+        max-tokens: 2000
+        top-p: 1.0
+      embedding:
+        options:
+          model: text-embedding-3-small
+      enabled: true
+
+    # 阿里云 DashScope 配置
+    dashscope:
+      api-key: ${DASHSCOPE_API_KEY:your-dashscope-api-key}
+      base-url: https://dashscope.aliyuncs.com/compatible-mode/v1
+      chat:
+        model: qwen-plus
+        temperature: 0.7
+        max-tokens: 2000
+        top-p: 1.0
+      embedding:
+        options:
+          model: text-embedding-v3
+      enabled: false
+
+    # 向量存储配置
+    vectorstore:
+      pgvector:
+        # PostgreSQL 连接配置
+        host: ${PGHOST:localhost}
+        port: ${PGPORT:5432}
+        database: ${PGDATABASE:openagent_drug_research_agent}
+        username: ${PGUSER:postgres}
+        password: ${PGPASSWORD:123456}
+        schema: public
+        table: spring_ai_vector_store
+        initialize-schema: true
+        # 向量维度
+        dimension: 1536
+        # 索引配置
+        index-type: ivfflat
+        index-lists: 100
+        # 距离度量: cosine, euclidean, inner_product
+        distance-type: cosine
+        # 存储类型: pgvector
+        type: pgvector
+
+    # RAG 配置
+    rag:
+      enabled: true
+      top-k: 5
+      threshold: 0.7
+      chunk-size: 1000
+      chunk-overlap: 200
+
+# 应用配置
+agent:
+  id: drug-research-agent
+  name: 药物研发协同智能体
+  description: 专注于药物研发流程优化、化合物筛选、临床试验管理的AI智能体
+
+  # 模型配置
+  model:
+    provider: openai  # openai, dashscope
+    chat-model: gpt-4o-mini
+    embedding-model: text-embedding-3-small
+
+  # 工具配置
+  tools:
+    enabled: true
+    timeout: 30s
+
+  # 向量配置
+  vector:
+    enabled: true
+    dimension: 1536
+    index-type: ivfflat
+    metric-type: cosine
+    index-lists: 100
+
+# 日志配置
+logging:
+  level:
+    root: INFO
+    com.qoobot: DEBUG
+    org.springframework.ai: DEBUG
+    org.springframework.ai.chat: DEBUG
+    org.springframework.ai.vectorstore: DEBUG
