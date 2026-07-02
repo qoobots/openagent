@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org" th:attr="data-stage=${stage ?: 'middle'}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>注册 | 教育培训智能体</title>
+  <meta name="robots" content="noindex, nofollow">
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css">
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body class="min-h-screen flex items-center justify-center p-4" 
+      style="background: linear-gradient(135deg, var(--bg-base), color-mix(in srgb, var(--primary) 8%, transparent));">
+  
+  <div class="w-full max-w-md" x-data="{
+    username: '',
+    phone: '',
+    smsCode: '',
+    password: '',
+    confirmPassword: '',
+    role: 'student',
+    stage: 'middle',
+    showPassword: false,
+    loading: false,
+    countdown: 0,
+    errors: {},
+    
+    get stageOptions() {
+      const opts = {
+        student: [
+          { value: 'elementary', label: '小学' },
+          { value: 'middle', label: '初中' },
+          { value: 'high', label: '高中' },
+          { value: 'university', label: '大学' },
+          { value: 'vocational', label: '职业培训' },
+          { value: 'adult', label: '成人学习' }
+        ],
+        teacher: [
+          { value: 'elementary', label: '小学教师' },
+          { value: 'middle', label: '中学教师' },
+          { value: 'high', label: '高中教师' },
+          { value: 'university', label: '大学教师' },
+          { value: 'vocational', label: '培训机构' }
+        ],
+        parent: [
+          { value: 'elementary', label: '小学家长' },
+          { value: 'middle', label: '初中家长' },
+          { value: 'high', label: '高中家长' }
+        ]
+      };
+      return opts[this.role] || opts.student;
+    },
+    
+    get passwordStrength() {
+      if (!this.password) return { level: 0, text: '', color: '' };
+      let score = 0;
+      if (this.password.length >= 8) score++;
+      if (/[A-Z]/.test(this.password)) score++;
+      if (/[0-9]/.test(this.password)) score++;
+      if (/[^A-Za-z0-9]/.test(this.password)) score++;
+      if (score <= 1) return { level: 1, text: '弱', color: 'bg-red-500' };
+      if (score <= 2) return { level: 2, text: '中', color: 'bg-yellow-500' };
+      return { level: 3, text: '强', color: 'bg-green-500' };
+    },
+    
+    validate() {
+      this.errors = {};
+      if (!this.username.trim()) this.errors.username = '请输入用户名';
+      else if (this.username.length < 3) this.errors.username = '用户名至少3个字符';
+      if (this.phone && !/^1[3-9]\d{9}$/.test(this.phone)) this.errors.phone = '手机号格式不正确';
+      if (!this.password) this.errors.password = '请输入密码';
+      else if (this.password.length < 6) this.errors.password = '密码至少6位';
+      if (this.password !== this.confirmPassword) this.errors.confirmPassword = '两次密码不一致';
+      return Object.keys(this.errors).length === 0;
+    },
+    
+    async register() {
+      if (!this.validate()) return;
+      this.loading = true;
+      try {
+        const res = await api.post('/api/auth/register', {
+          username: this.username,
+          phone: this.phone || undefined,
+          password: this.password,
+          role: this.role,
+          stage: this.stage,
+          smsCode: this.smsCode || undefined
+        });
+        if (res.code === 0 || res.data) {
+          toast.success('注册成功');
+          // 自动登录
+          const data = res.data || {};
+          if (data.accessToken) {
+            api.setToken(data.accessToken, data.refreshToken);
+            $store.user.login({ id: data.userId, name: this.username, role: this.role, stage: this.stage });
+          }
+          const routes = { student: '/', teacher: '/teacher', parent: '/parent', admin: '/admin' };
+          window.location.href = '/education-agent' + (routes[this.role] || '/');
+        } else {
+          toast.error(res.message || '注册失败');
+        }
+      } catch (e) {
+        toast.error(e.message || '注册失败，请重试');
+      } finally {
+        this.loading = false;
+      }
+    },
+    
+    async sendSmsCode() {
+      if (!this.phone || !/^1[3-9]\d{9}$/.test(this.phone)) {
+        this.errors.phone = '请输入正确的手机号';
+        return;
+      }
+      try {
+        await api.post('/api/auth/sms/send', { phone: this.phone });
+        toast.success('验证码已发送');
+        this.countdown = 60;
+        const timer = setInterval(() => { this.countdown--; if (this.countdown <= 0) clearInterval(timer); }, 1000);
+      } catch (e) { toast.error('发送失败'); }
+    }
+  }">
+  
+    <!-- Logo -->
+    <div class="text-center mb-8">
+      <a th:href="@{/}" class="inline-flex items-center gap-3">
+        <svg width="40" height="40" viewBox="0 0 32 32" fill="none">
+          <rect width="32" height="32" rx="8" fill="var(--primary)" opacity="0.15"/>
+          <path d="M16 6L8 12v8l8 6 8-6v-8l-8-6z" stroke="var(--primary)" stroke-width="2" fill="none"/>
+          <circle cx="16" cy="16" r="3" fill="var(--primary)"/>
+        </svg>
+        <span class="text-xl font-bold" style="color: var(--primary);">教育培训智能体</span>
+      </a>
+    </div>
+    
+    <!-- 注册卡片 -->
+    <div class="bg-white rounded-2xl shadow-xl p-8">
+      <h1 class="text-2xl font-bold text-center mb-6">创建账号</h1>
+      
+      <form @submit.prevent="register()" class="space-y-4">
+        <!-- 用户名 -->
+        <div>
+          <label class="edu-label">用户名 <span class="text-red-500">*</span></label>
+          <input type="text" x-model="username" class="edu-input" placeholder="请输入用户名"
+                 :class="{ 'error': errors.username }">
+          <p class="form-error" x-show="errors.username" x-text="errors.username"></p>
+        </div>
+        
+        <!-- 手机号 -->
+        <div>
+          <label class="edu-label">手机号 <span class="text-gray-400 text-xs">(选填)</span></label>
+          <div class="flex gap-2">
+            <input type="tel" x-model="phone" class="edu-input flex-1" placeholder="请输入手机号" maxlength="11"
+                   :class="{ 'error': errors.phone }">
+            <button type="button" class="btn-outline whitespace-nowrap text-sm" :disabled="countdown > 0"
+                    @click="sendSmsCode()">
+              <span x-show="countdown === 0">获取验证码</span>
+              <span x-show="countdown > 0" x-text="countdown + 's'"></span>
+            </button>
+          </div>
+          <p class="form-error" x-show="errors.phone" x-text="errors.phone"></p>
+        </div>
+        
+        <!-- 验证码 -->
+        <div x-show="phone">
+          <label class="edu-label">验证码</label>
+          <input type="text" x-model="smsCode" class="edu-input" placeholder="请输入验证码" maxlength="6">
+        </div>
+        
+        <!-- 密码 -->
+        <div>
+          <label class="edu-label">密码 <span class="text-red-500">*</span></label>
+          <div class="relative">
+            <input :type="showPassword ? 'text' : 'password'" x-model="password" class="edu-input pr-10" 
+                   placeholder="请输入密码" :class="{ 'error': errors.password }">
+            <button type="button" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" 
+                    @click="showPassword = !showPassword">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+              </svg>
+            </button>
+          </div>
+          <!-- 密码强度 -->
+          <div x-show="password" class="mt-2">
+            <div class="flex gap-1">
+              <div class="h-1 flex-1 rounded" :class="passwordStrength.level >= 1 ? passwordStrength.color : 'bg-gray-200'"></div>
+              <div class="h-1 flex-1 rounded" :class="passwordStrength.level >= 2 ? passwordStrength.color : 'bg-gray-200'"></div>
+              <div class="h-1 flex-1 rounded" :class="passwordStrength.level >= 3 ? passwordStrength.color : 'bg-gray-200'"></div>
+            </div>
+            <p class="text-xs mt-1" :class="{'text-red-500': passwordStrength.level === 1, 'text-yellow-500': passwordStrength.level === 2, 'text-green-500': passwordStrength.level === 3}" x-text="passwordStrength.text"></p>
+          </div>
+          <p class="form-error" x-show="errors.password" x-text="errors.password"></p>
+        </div>
+        
+        <!-- 确认密码 -->
+        <div>
+          <label class="edu-label">确认密码 <span class="text-red-500">*</span></label>
+          <input type="password" x-model="confirmPassword" class="edu-input" placeholder="请再次输入密码"
+                 :class="{ 'error': errors.confirmPassword }">
+          <p class="form-error" x-show="errors.confirmPassword" x-text="errors.confirmPassword"></p>
+        </div>
+        
+        <!-- 角色选择 -->
+        <div>
+          <label class="edu-label">我是 <span class="text-red-500">*</span></label>
+          <div class="flex gap-4">
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="radio" name="role" value="student" x-model="role" class="radio radio-primary radio-sm">
+              <span>学生</span>
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="radio" name="role" value="teacher" x-model="role" class="radio radio-primary radio-sm">
+              <span>教师</span>
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="radio" name="role" value="parent" x-model="role" class="radio radio-primary radio-sm">
+              <span>家长</span>
+            </label>
+          </div>
+        </div>
+        
+        <!-- 学段选择 -->
+        <div>
+          <label class="edu-label">学段 <span class="text-red-500">*</span></label>
+          <select x-model="stage" class="edu-select w-full">
+            <template x-for="opt in stageOptions" :key="opt.value">
+              <option :value="opt.value" x-text="opt.label"></option>
+            </template>
+          </select>
+        </div>
+        
+        <!-- 提交按钮 -->
+        <button type="submit" class="btn-primary w-full justify-center mt-6" :disabled="loading">
+          <span x-show="!loading">注 册</span>
+          <span x-show="loading" class="loading loading-spinner loading-sm"></span>
+          <span x-show="loading">注册中...</span>
+        </button>
+      </form>
+      
+      <!-- 登录链接 -->
+      <p class="text-center mt-6 text-sm text-gray-500">
+        已有账号？<a th:href="@{/login}" class="text-primary font-medium hover:underline">去登录</a>
+      </p>
+    </div>
+    
+    <!-- 底部 -->
+    <div class="text-center mt-6 text-sm text-gray-500">
+      <p>&copy; 2026 教育培训智能体 · 让学习更智能</p>
+    </div>
+  </div>
+  
+  <script th:src="@{/js/app.js}"></script>
+</body>
+</html>

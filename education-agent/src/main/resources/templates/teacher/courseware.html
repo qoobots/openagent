@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org" th:attr="data-stage=${stage ?: 'high'}">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>课件生成 | 教育培训智能体</title><meta name="robots" content="noindex, nofollow"><script src="https://cdn.tailwindcss.com"></script><link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css"><script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script><link rel="stylesheet" th:href="@{/css/app.css}"></head>
+<body class="bg-base-100" x-data x-init="$store.user.applyStage()">
+<div class="app-layout">
+  <aside class="app-sidebar" :class="{ 'collapsed': $store.ui.sidebarCollapsed, 'mobile-open': $store.ui.mobileSidebarOpen }"><div class="sidebar-logo"><svg width="32" height="32" viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="8" fill="currentColor" opacity="0.1"/><path d="M16 6L8 12v8l8 6 8-6v-8l-8-6z" stroke="currentColor" stroke-width="2" fill="none"/><circle cx="16" cy="16" r="3" fill="currentColor"/></svg><span>教育智能体</span></div><nav class="sidebar-menu" th:replace="~{fragments/sidebar :: menuItems}"></nav></aside>
+  <div class="app-main">
+    <header class="app-header" th:replace="~{fragments/header :: topBar}"></header>
+    <div class="fixed inset-0 bg-black/50 z-40 lg:hidden" x-show="$store.ui.mobileSidebarOpen" @click="$store.ui.mobileSidebarOpen = false"></div>
+    <main class="app-content" x-data="{
+      subject: 'math', chapter: '二次函数', duration: 40, style: 'interactive', goal: '', generating: false, progress: 0, generated: false,
+      outline: [
+        { title: '导入: 生活中的抛物线', duration: 5 },
+        { title: '概念讲解: 顶点式定义', duration: 10 },
+        { title: '例题精讲: 3道典型题', duration: 15 },
+        { title: '课堂练习: 5道选择题', duration: 8 },
+        { title: '总结: 知识点回顾', duration: 2 }
+      ],
+      activeTab: 'outline',
+      async generate() { this.generating = true; this.progress = 0; const t = setInterval(() => { this.progress += 5; if (this.progress >= 100) { clearInterval(t); this.generating = false; this.generated = true; } }, 500); }
+    }">
+      <h1 class="text-2xl font-bold mb-6">📚 课件生成</h1>
+      <!-- 配置 -->
+      <div class="edu-card mb-6">
+        <h2 class="edu-card-title mb-4">课件配置</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div><label class="edu-label">课程</label><select x-model="subject" class="edu-select w-full"><option value="math">高中数学</option><option value="physics">高中物理</option></select></div>
+          <div><label class="edu-label">章节</label><input type="text" x-model="chapter" class="edu-input"></div>
+          <div><label class="edu-label">课时(分钟)</label><input type="number" x-model="duration" class="edu-input"></div>
+          <div><label class="edu-label">风格</label><select x-model="style" class="edu-select w-full"><option value="interactive">互动式</option><option value="lecture">讲授式</option><option value="inquiry">探究式</option></select></div>
+        </div>
+        <div class="mt-4"><label class="edu-label">教学目标</label><textarea x-model="goal" class="edu-input" rows="2" placeholder="描述教学目标..."></textarea></div>
+        <button class="btn-primary mt-4" @click="generate()" :disabled="generating">
+          <span x-show="!generating">AI 生成课件</span>
+          <span x-show="generating" class="loading loading-spinner loading-sm"></span>
+          <span x-show="generating" x-text="'生成中... ' + progress + '%'"></span>
+        </button>
+      </div>
+      <!-- 生成进度 -->
+      <div x-show="generating" class="edu-card mb-6"><div class="edu-progress"><div class="edu-progress-bar" :style="'width:'+progress+'%'"></div></div><p class="text-center text-sm text-gray-500 mt-2" x-text="'预计还需 ' + Math.ceil((100-progress)/10) + ' 秒'"></p></div>
+      <!-- 结果 -->
+      <div x-show="generated" class="edu-card">
+        <div class="tab-group mb-4">
+          <button class="tab-item" :class="{active: activeTab==='outline'}" @click="activeTab='outline'">课件大纲</button>
+          <button class="tab-item" :class="{active: activeTab==='lecture'}" @click="activeTab='lecture'">讲义内容</button>
+          <button class="tab-item" :class="{active: activeTab==='exercise'}" @click="activeTab='exercise'">配套练习</button>
+          <button class="tab-item" :class="{active: activeTab==='tips'}" @click="activeTab='tips'">教学建议</button>
+        </div>
+        <div x-show="activeTab==='outline'" class="space-y-3">
+          <template x-for="(item, idx) in outline" :key="idx">
+            <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg"><span class="font-medium text-primary" x-text="(idx+1)+'.'"></span><span class="flex-1" x-text="item.title"></span><span class="text-xs text-gray-400" x-text="item.duration+'min'"></span></div>
+          </template>
+        </div>
+        <div x-show="activeTab==='lecture'" class="prose prose-sm max-w-none"><p>讲义内容将由AI根据大纲自动生成，包含知识点定义、公式推导、例题解析等内容...</p></div>
+        <div x-show="activeTab==='exercise'" class="text-gray-500 text-sm">配套练习将自动生成5道选择题和3道填空题...</div>
+        <div x-show="activeTab==='tips'" class="text-gray-500 text-sm">教学建议将根据学生学情数据智能生成...</div>
+        <div class="flex gap-3 mt-6 pt-4 border-t border-gray-100">
+          <button class="btn-outline btn-sm">导出 PPT</button>
+          <button class="btn-outline btn-sm">导出 PDF</button>
+          <button class="btn-ghost btn-sm">发布给学生</button>
+          <button class="btn-ghost btn-sm">保存到素材库</button>
+        </div>
+      </div>
+    </main>
+    <footer class="app-footer" th:replace="~{fragments/footer :: bottom}"></footer>
+  </div>
+</div>
+<script th:src="@{/js/app.js}"></script>
+</body></html>

@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org" th:attr="data-stage=${stage ?: 'middle'}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>首页 | 教育培训智能体</title>
+  <meta name="description" content="AI驱动的教育培训平台，提供智能辅导、知识讲解、个性化学习路径">
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css">
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body class="bg-base-100" x-data x-init="$store.user.applyStage()">
+  <div class="app-layout">
+    <!-- 侧边栏 -->
+    <aside class="app-sidebar" 
+           :class="{ 'collapsed': $store.ui.sidebarCollapsed, 'mobile-open': $store.ui.mobileSidebarOpen }"
+           aria-label="主导航">
+      <div class="sidebar-logo">
+        <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+          <rect width="32" height="32" rx="8" fill="currentColor" opacity="0.1"/>
+          <path d="M16 6L8 12v8l8 6 8-6v-8l-8-6z" stroke="currentColor" stroke-width="2" fill="none"/>
+          <circle cx="16" cy="16" r="3" fill="currentColor"/>
+        </svg>
+        <span>教育智能体</span>
+      </div>
+      <nav class="sidebar-menu" th:replace="~{fragments/sidebar :: menuItems}"></nav>
+    </aside>
+    
+    <!-- 主内容区 -->
+    <div class="app-main">
+      <!-- 顶部导航栏 -->
+      <header class="app-header" th:replace="~{fragments/header :: topBar}"></header>
+      
+      <!-- 移动端遮罩 -->
+      <div class="fixed inset-0 bg-black/50 z-40 lg:hidden" 
+           x-show="$store.ui.mobileSidebarOpen" 
+           @click="$store.ui.mobileSidebarOpen = false"></div>
+      
+      <!-- 页面内容 -->
+      <main class="app-content" x-data="{
+        tasks: [
+          { id: 1, title: '复习二次函数', done: true, type: 'review' },
+          { id: 2, title: '完成5道选择题', done: true, type: 'practice' },
+          { id: 3, title: '预习三角函数', done: false, type: 'preview' },
+          { id: 4, title: '完成错题回顾', done: false, type: 'review' },
+          { id: 5, title: '每日打卡', done: false, type: 'checkin' }
+        ],
+        recommendations: [
+          { id: 1, title: '二次函数进阶练习', match: 95, type: 'practice' },
+          { id: 2, title: '三角函数基础讲解', match: 88, type: 'explain' },
+          { id: 3, title: '概率统计入门', match: 82, type: 'explain' }
+        ],
+        suggestedQuestions: ['二次函数怎么画图？', '三角函数公式有哪些？', '概率题怎么分析？'],
+        
+        get completedCount() { return this.tasks.filter(t => t.done).length; },
+        get progress() { return Math.round((this.completedCount / this.tasks.length) * 100); },
+        
+        toggleTask(id) { const t = this.tasks.find(t => t.id === id); if (t) t.done = !t.done; },
+        goAsk(question) { window.location.href = '/education-agent/chat?q=' + encodeURIComponent(question); }
+      }">
+        
+        <!-- 欢迎区域 -->
+        <div class="mb-6">
+          <h1 class="text-2xl font-bold">你好，<span x-text="$store.user.info?.name || '同学'"></span> 👋</h1>
+          <p class="text-gray-500 mt-1">今天也要继续加油哦！</p>
+        </div>
+        
+        <!-- 今日学习任务 -->
+        <div class="edu-card mb-6">
+          <div class="edu-card-header">
+            <h2 class="edu-card-title">📋 今日学习任务</h2>
+            <span class="text-sm text-gray-500">
+              已学习 <span class="font-medium text-primary">45</span> 分钟 | 
+              完成 <span class="font-medium text-primary" x-text="completedCount"></span>/<span x-text="tasks.length"></span> 任务
+            </span>
+          </div>
+          
+          <!-- 进度条 -->
+          <div class="edu-progress mb-4">
+            <div class="edu-progress-bar" :style="'width: ' + progress + '%'"></div>
+          </div>
+          
+          <!-- 任务列表 -->
+          <div class="space-y-2">
+            <template x-for="task in tasks" :key="task.id">
+              <div class="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+                   @click="toggleTask(task.id)">
+                <input type="checkbox" class="checkbox checkbox-sm checkbox-primary" :checked="task.done" @click.stop="toggleTask(task.id)">
+                <span class="flex-1" :class="{ 'line-through text-gray-400': task.done }" x-text="task.title"></span>
+                <span class="text-xs px-2 py-1 rounded-full" 
+                      :class="{ 'bg-green-100 text-green-600': task.type === 'review', 'bg-blue-100 text-blue-600': task.type === 'practice', 'bg-purple-100 text-purple-600': task.type === 'preview', 'bg-orange-100 text-orange-600': task.type === 'checkin' }"
+                      x-text="{ review: '复习', practice: '练习', preview: '预习', checkin: '打卡' }[task.type]"></span>
+              </div>
+            </template>
+          </div>
+        </div>
+        
+        <!-- 快速入口 + AI助手 -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          <!-- 快速入口 -->
+          <div class="edu-card">
+            <h2 class="edu-card-title mb-4">⚡ 快速入口</h2>
+            <div class="grid grid-cols-2 gap-3">
+              <a th:href="@{/chat}" class="flex items-center gap-3 p-4 rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors">
+                <span class="text-2xl">💬</span>
+                <span class="font-medium">AI提问</span>
+              </a>
+              <a th:href="@{/explain}" class="flex items-center gap-3 p-4 rounded-lg bg-green-50 hover:bg-green-100 transition-colors">
+                <span class="text-2xl">📖</span>
+                <span class="font-medium">知识讲解</span>
+              </a>
+              <a th:href="@{/practice}" class="flex items-center gap-3 p-4 rounded-lg bg-purple-50 hover:bg-purple-100 transition-colors">
+                <span class="text-2xl">📝</span>
+                <span class="font-medium">开始练习</span>
+              </a>
+              <a th:href="@{/wrong-book}" class="flex items-center gap-3 p-4 rounded-lg bg-orange-50 hover:bg-orange-100 transition-colors">
+                <span class="text-2xl">❌</span>
+                <span class="font-medium">错题本</span>
+              </a>
+            </div>
+          </div>
+          
+          <!-- AI学习助手 -->
+          <div class="edu-card">
+            <h2 class="edu-card-title mb-4">🤖 AI学习助手</h2>
+            <p class="text-gray-500 text-sm mb-4">有什么不懂的？问我吧！</p>
+            <div class="flex gap-2">
+              <input type="text" placeholder="输入你的问题..." class="edu-input flex-1" 
+                     @keydown.enter="goAsk($event.target.value)">
+              <button class="btn-primary" @click="goAsk('')">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+                </svg>
+              </button>
+            </div>
+            <!-- 推荐问题 -->
+            <div class="mt-4">
+              <p class="text-xs text-gray-400 mb-2">推荐问题：</p>
+              <div class="flex flex-wrap gap-2">
+                <template x-for="q in suggestedQuestions" :key="q">
+                  <span class="chat-suggestion-tag" @click="goAsk(q)" x-text="q"></span>
+                </template>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- 学习推荐 -->
+        <div class="edu-card">
+          <h2 class="edu-card-title mb-4">📚 学习推荐</h2>
+          <div class="space-y-3">
+            <template x-for="item in recommendations" :key="item.id">
+              <a :href="'/education-agent/' + (item.type === 'practice' ? 'practice' : 'explain') + '?id=' + item.id"
+                 class="flex items-center justify-between p-4 rounded-lg border border-gray-100 hover:border-primary hover:shadow-sm transition-all">
+                <div class="flex items-center gap-3">
+                  <span class="text-xl" x-text="item.type === 'practice' ? '📝' : '📖'"></span>
+                  <span class="font-medium" x-text="item.title"></span>
+                </div>
+                <span class="edu-badge edu-badge-primary">
+                  匹配度 <span x-text="item.match"></span>%
+                </span>
+              </a>
+            </template>
+          </div>
+        </div>
+        
+      </main>
+      
+      <!-- 页脚 -->
+      <footer class="app-footer" th:replace="~{fragments/footer :: bottom}"></footer>
+    </div>
+  </div>
+  
+  <script th:src="@{/js/app.js}"></script>
+</body>
+</html>

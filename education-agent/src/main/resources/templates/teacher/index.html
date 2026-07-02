@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org" th:attr="data-stage=${stage ?: 'high'}">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>教师工作台 | 教育培训智能体</title>
+  <meta name="robots" content="noindex, nofollow">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css">
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body class="bg-base-100" x-data x-init="$store.user.applyStage()">
+  <div class="app-layout">
+    <aside class="app-sidebar" :class="{ 'collapsed': $store.ui.sidebarCollapsed, 'mobile-open': $store.ui.mobileSidebarOpen }">
+      <div class="sidebar-logo"><svg width="32" height="32" viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="8" fill="currentColor" opacity="0.1"/><path d="M16 6L8 12v8l8 6 8-6v-8l-8-6z" stroke="currentColor" stroke-width="2" fill="none"/><circle cx="16" cy="16" r="3" fill="currentColor"/></svg><span>教育智能体</span></div>
+      <nav class="sidebar-menu" th:replace="~{fragments/sidebar :: menuItems}"></nav>
+    </aside>
+    <div class="app-main">
+      <header class="app-header" th:replace="~{fragments/header :: topBar}"></header>
+      <div class="fixed inset-0 bg-black/50 z-40 lg:hidden" x-show="$store.ui.mobileSidebarOpen" @click="$store.ui.mobileSidebarOpen = false"></div>
+      
+      <main class="app-content" x-data="{
+        overview: { classes: 3, students: 120, weeklyHours: 12, pendingReview: 25, warningStudents: 4 },
+        classList: [
+          { name: '高三(1)班', avg: 85, trend: 'up', weak: '三角函数' },
+          { name: '高三(2)班', avg: 78, trend: 'down', weak: '概率统计' },
+          { name: '高三(3)班', avg: 82, trend: 'stable', weak: '立体几何' }
+        ]
+      }">
+        <h1 class="text-2xl font-bold mb-6">🏠 教师工作台</h1>
+        <!-- 教学概览 -->
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+          <div class="edu-card text-center"><p class="text-2xl font-bold" x-text="overview.classes"></p><p class="text-xs text-gray-500">班级</p></div>
+          <div class="edu-card text-center"><p class="text-2xl font-bold" x-text="overview.students"></p><p class="text-xs text-gray-500">学生</p></div>
+          <div class="edu-card text-center"><p class="text-2xl font-bold" x-text="overview.weeklyHours"></p><p class="text-xs text-gray-500">本周课时</p></div>
+          <div class="edu-card text-center"><p class="text-2xl font-bold text-orange-500" x-text="overview.pendingReview"></p><p class="text-xs text-gray-500">待批改</p></div>
+          <div class="edu-card text-center"><p class="text-2xl font-bold text-red-500" x-text="overview.warningStudents"></p><p class="text-xs text-gray-500">预警学生</p></div>
+        </div>
+        <!-- 快捷操作 -->
+        <div class="edu-card mb-6">
+          <h2 class="edu-card-title mb-4">快捷操作</h2>
+          <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+            <a th:href="@{/teacher/courseware}" class="flex items-center gap-3 p-4 rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors"><span class="text-2xl">📚</span><span class="font-medium">生成课件</span></a>
+            <a th:href="@{/practice}" class="flex items-center gap-3 p-4 rounded-lg bg-green-50 hover:bg-green-100 transition-colors"><span class="text-2xl">📝</span><span class="font-medium">智能出题</span></a>
+            <a href="#" class="flex items-center gap-3 p-4 rounded-lg bg-purple-50 hover:bg-purple-100 transition-colors"><span class="text-2xl">✅</span><span class="font-medium">批改作业</span></a>
+            <a th:href="@{/teacher/courseware}" class="flex items-center gap-3 p-4 rounded-lg bg-orange-50 hover:bg-orange-100 transition-colors"><span class="text-2xl">🎯</span><span class="font-medium">一键备课</span></a>
+            <a href="#" class="flex items-center gap-3 p-4 rounded-lg bg-pink-50 hover:bg-pink-100 transition-colors"><span class="text-2xl">📋</span><span class="font-medium">发布考试</span></a>
+            <a th:href="@{/admin/warning}" class="flex items-center gap-3 p-4 rounded-lg bg-red-50 hover:bg-red-100 transition-colors"><span class="text-2xl">⚠️</span><span class="font-medium">查看预警</span></a>
+          </div>
+        </div>
+        <!-- 班级学情 -->
+        <div class="edu-card">
+          <h2 class="edu-card-title mb-4">班级学情</h2>
+          <div class="space-y-4">
+            <template x-for="cls in classList" :key="cls.name">
+              <div class="p-4 border border-gray-100 rounded-lg">
+                <div class="flex items-center justify-between mb-2">
+                  <span class="font-medium" x-text="cls.name"></span>
+                  <div class="flex items-center gap-2">
+                    <span class="text-sm">平均: <span class="font-bold" x-text="cls.avg"></span></span>
+                    <span class="text-xs" :class="{ 'text-green-500': cls.trend === 'up', 'text-red-500': cls.trend === 'down', 'text-gray-400': cls.trend === 'stable' }" x-text="cls.trend === 'up' ? '↑' : cls.trend === 'down' ? '↓' : '→'"></span>
+                  </div>
+                </div>
+                <div class="edu-progress mb-2"><div class="edu-progress-bar" :style="'width:'+cls.avg+'%'"></div></div>
+                <p class="text-xs text-gray-500">薄弱: <a href="#" class="text-primary hover:underline" x-text="cls.weak"></a></p>
+              </div>
+            </template>
+          </div>
+        </div>
+      </main>
+      <footer class="app-footer" th:replace="~{fragments/footer :: bottom}"></footer>
+    </div>
+  </div>
+  <script th:src="@{/js/app.js}"></script>
+</body>
+</html>

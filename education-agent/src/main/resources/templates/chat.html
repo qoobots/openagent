@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org" th:attr="data-stage=${stage ?: 'middle'}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI对话辅导 | 教育培训智能体</title>
+  <meta name="description" content="AI智能辅导对话，支持知识点讲解、题目分析、个性化学习指导">
+  <meta name="robots" content="noindex, nofollow">
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css">
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body class="bg-base-100" x-data x-init="$store.user.applyStage()">
+  <div class="app-layout">
+    <!-- 侧边栏 -->
+    <aside class="app-sidebar" 
+           :class="{ 'collapsed': $store.ui.sidebarCollapsed, 'mobile-open': $store.ui.mobileSidebarOpen }">
+      <div class="sidebar-logo">
+        <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+          <rect width="32" height="32" rx="8" fill="currentColor" opacity="0.1"/>
+          <path d="M16 6L8 12v8l8 6 8-6v-8l-8-6z" stroke="currentColor" stroke-width="2" fill="none"/>
+          <circle cx="16" cy="16" r="3" fill="currentColor"/>
+        </svg>
+        <span>教育智能体</span>
+      </div>
+      <nav class="sidebar-menu" th:replace="~{fragments/sidebar :: menuItems}"></nav>
+    </aside>
+    
+    <!-- 主内容区 -->
+    <div class="app-main">
+      <!-- 顶部导航栏 -->
+      <header class="app-header" th:replace="~{fragments/header :: topBar}"></header>
+      
+      <!-- 移动端遮罩 -->
+      <div class="fixed inset-0 bg-black/50 z-40 lg:hidden" 
+           x-show="$store.ui.mobileSidebarOpen" 
+           @click="$store.ui.mobileSidebarOpen = false"></div>
+      
+      <!-- 聊天页面 -->
+      <main class="flex flex-col h-[calc(100vh-var(--header-height))]" x-data="chatComponent()">
+        <input type="hidden" x-ref="sessionId" th:value="${sessionId}">
+        
+        <!-- 聊天头部 -->
+        <div class="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-white">
+          <div class="flex items-center gap-3">
+            <button class="btn btn-ghost btn-sm btn-circle lg:hidden" @click="$store.ui.toggleMobileSidebar()">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+              </svg>
+            </button>
+            <h1 class="font-semibold text-lg">💬 AI学习助手</h1>
+          </div>
+          <div class="flex items-center gap-2">
+            <button class="btn btn-ghost btn-sm" @click="showSessionList = !showSessionList; loadSessions()" title="会话历史">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+            </button>
+            <button class="btn btn-ghost btn-sm" @click="newSession()" title="新建会话">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+        
+        <!-- 会话历史侧边抽屉 -->
+        <div class="fixed inset-0 z-50" x-show="showSessionList" x-transition>
+          <div class="absolute inset-0 bg-black/30" @click="showSessionList = false"></div>
+          <div class="absolute right-0 top-0 bottom-0 w-80 bg-white shadow-xl p-4 overflow-y-auto">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="font-semibold">历史会话</h3>
+              <button class="btn btn-ghost btn-sm btn-circle" @click="showSessionList = false">✕</button>
+            </div>
+            <div class="space-y-2">
+              <template x-for="s in sessions" :key="s.sessionId">
+                <button class="w-full text-left p-3 rounded-lg hover:bg-gray-50 transition-colors"
+                        @click="switchSession(s.sessionId)">
+                  <p class="font-medium text-sm truncate" x-text="s.title || '新会话'"></p>
+                  <p class="text-xs text-gray-400 mt-1" x-text="s.updatedAt?.slice(0, 10)"></p>
+                </button>
+              </template>
+              <p x-show="sessions.length === 0" class="text-center text-gray-400 text-sm py-8">暂无历史会话</p>
+            </div>
+          </div>
+        </div>
+        
+        <!-- 消息区域 -->
+        <div class="chat-messages flex-1 overflow-y-auto" x-ref="messagesContainer">
+          <!-- 空状态欢迎 -->
+          <div x-show="messages.length === 0 && !isStreaming" class="flex-1 flex flex-col items-center justify-center py-12">
+            <div class="text-5xl mb-4">🤖</div>
+            <h2 class="text-xl font-semibold mb-2">AI学习助手</h2>
+            <p class="text-gray-500 text-center max-w-md mb-6" x-text="welcomeMessage"></p>
+            <!-- 推荐问题 -->
+            <div class="flex flex-wrap gap-2 justify-center max-w-lg">
+              <template x-for="q in suggestedQuestions" :key="q">
+                <span class="chat-suggestion-tag" @click="sendSuggested(q)" x-text="q"></span>
+              </template>
+            </div>
+          </div>
+          
+          <!-- 消息列表 -->
+          <template x-for="msg in messages" :key="msg.time">
+            <div class="flex" :class="msg.role === 'user' ? 'justify-end' : 'justify-start'">
+              <div class="chat-bubble" :class="msg.role === 'user' ? 'user' : 'ai'">
+                <div x-html="msg.content"></div>
+                <!-- 引用 -->
+                <div x-show="msg.references?.length > 0" class="mt-3 pt-3 border-t border-gray-100">
+                  <p class="text-xs text-gray-400 mb-1">📚 引用：</p>
+                  <template x-for="ref in msg.references" :key="ref.id">
+                    <a :href="'/education-agent/explain?id=' + ref.knowledgeId" 
+                       class="text-xs text-primary hover:underline block" x-text="ref.title"></a>
+                  </template>
+                </div>
+              </div>
+            </div>
+          </template>
+          
+          <!-- 流式输出中 -->
+          <div x-show="isStreaming" class="flex justify-start">
+            <div class="chat-bubble ai">
+              <div x-html="streamingContent" class="chat-typing-cursor"></div>
+            </div>
+          </div>
+          
+          <!-- 加载中 -->
+          <div x-show="isLoading && !isStreaming" class="flex justify-start">
+            <div class="chat-bubble ai">
+              <span class="loading loading-dots loading-sm"></span>
+              <span class="text-sm text-gray-400 ml-2">AI 正在思考...</span>
+            </div>
+          </div>
+        </div>
+        
+        <!-- 追问建议 -->
+        <div class="chat-suggestions" x-show="suggestedQuestions.length > 0 && !isStreaming">
+          <template x-for="q in suggestedQuestions" :key="q">
+            <span class="chat-suggestion-tag" @click="sendSuggested(q)" x-text="q"></span>
+          </template>
+        </div>
+        
+        <!-- 输入区域 -->
+        <div class="chat-input-area">
+          <button class="btn btn-ghost btn-sm btn-circle flex-shrink-0" title="附件">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/>
+            </svg>
+          </button>
+          <textarea x-model="inputText" @keydown="handleKeydown($event)" @input="saveDraft()"
+                    placeholder="输入你的问题... (Enter发送, Shift+Enter换行)"
+                    rows="1" class="flex-1"></textarea>
+          <button x-show="isStreaming" class="btn btn-error btn-sm" @click="stopStreaming()">停止</button>
+          <button x-show="!isStreaming" class="btn btn-primary btn-sm btn-circle flex-shrink-0" 
+                  :disabled="!inputText.trim() || isLoading" @click="sendMessage()">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+            </svg>
+          </button>
+        </div>
+        
+        <!-- 底部关联信息 -->
+        <div class="px-4 py-2 border-t border-gray-100 bg-white flex items-center gap-4 text-xs text-gray-400">
+          <div class="flex items-center gap-1">
+            <span>关联课程:</span>
+            <select x-model="relatedCourse" class="select select-xs select-bordered">
+              <option value="">自动检测</option>
+              <option value="math">数学</option>
+              <option value="chinese">语文</option>
+              <option value="english">英语</option>
+              <option value="physics">物理</option>
+              <option value="chemistry">化学</option>
+            </select>
+          </div>
+          <div class="flex items-center gap-1">
+            <span>知识点:</span>
+            <select x-model="relatedKnowledge" class="select select-xs select-bordered">
+              <option value="auto">自动检测</option>
+            </select>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+  
+  <script th:src="@{/js/app.js}"></script>
+  <script th:src="@{/js/chat.js}"></script>
+</body>
+</html>

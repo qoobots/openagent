@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org" th:attr="data-stage=${stage ?: 'middle'}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>登录 | 教育培训智能体</title>
+  <meta name="robots" content="noindex, nofollow">
+  
+  <!-- Tailwind CSS + DaisyUI -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css">
+  
+  <!-- Alpine.js -->
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  
+  <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body class="min-h-screen flex items-center justify-center p-4" 
+      style="background: linear-gradient(135deg, var(--bg-base), color-mix(in srgb, var(--primary) 8%, transparent));">
+  
+  <div class="w-full max-w-md" x-data="{
+    tab: 'password',
+    username: '',
+    password: '',
+    phone: '',
+    smsCode: '',
+    remember: false,
+    showPassword: false,
+    loading: false,
+    countdown: 0,
+    errors: {},
+    
+    validate() {
+      this.errors = {};
+      if (this.tab === 'password') {
+        if (!this.username.trim()) this.errors.username = '请输入用户名/手机号';
+        if (!this.password) this.errors.password = '请输入密码';
+      } else {
+        if (!this.phone.trim()) this.errors.phone = '请输入手机号';
+        else if (!/^1[3-9]\d{9}$/.test(this.phone)) this.errors.phone = '手机号格式不正确';
+        if (!this.smsCode) this.errors.smsCode = '请输入验证码';
+      }
+      return Object.keys(this.errors).length === 0;
+    },
+    
+    async login() {
+      if (!this.validate()) return;
+      this.loading = true;
+      try {
+        const body = this.tab === 'password' 
+          ? { username: this.username, password: this.password }
+          : { phone: this.phone, code: this.smsCode };
+        const res = await api.post('/api/auth/login', body);
+        if (res.code === 0 || res.data) {
+          const data = res.data || res;
+          api.setToken(data.accessToken || data.token, data.refreshToken);
+          $store.user.login({
+            id: data.userId,
+            name: data.nickname || data.username || this.username,
+            role: data.role || 'student',
+            stage: data.stage || 'middle',
+            avatar: data.avatar
+          });
+          toast.success('登录成功');
+          // 按角色跳转
+          const routes = { student: '/', teacher: '/teacher', parent: '/parent', admin: '/admin' };
+          window.location.href = '/education-agent' + (routes[data.role] || '/');
+        } else {
+          toast.error(res.message || '登录失败');
+        }
+      } catch (e) {
+        toast.error(e.message || '登录失败，请重试');
+      } finally {
+        this.loading = false;
+      }
+    },
+    
+    async sendSmsCode() {
+      if (!this.phone || !/^1[3-9]\d{9}$/.test(this.phone)) {
+        this.errors.phone = '请输入正确的手机号';
+        return;
+      }
+      try {
+        await api.post('/api/auth/sms/send', { phone: this.phone });
+        toast.success('验证码已发送');
+        this.countdown = 60;
+        const timer = setInterval(() => {
+          this.countdown--;
+          if (this.countdown <= 0) clearInterval(timer);
+        }, 1000);
+      } catch (e) {
+        toast.error('发送失败，请重试');
+      }
+    }
+  }">
+  
+    <!-- Logo -->
+    <div class="text-center mb-8">
+      <a th:href="@{/}" class="inline-flex items-center gap-3">
+        <svg width="40" height="40" viewBox="0 0 32 32" fill="none">
+          <rect width="32" height="32" rx="8" fill="var(--primary)" opacity="0.15"/>
+          <path d="M16 6L8 12v8l8 6 8-6v-8l-8-6z" stroke="var(--primary)" stroke-width="2" fill="none"/>
+          <circle cx="16" cy="16" r="3" fill="var(--primary)"/>
+        </svg>
+        <span class="text-xl font-bold" style="color: var(--primary);">教育培训智能体</span>
+      </a>
+    </div>
+    
+    <!-- 登录卡片 -->
+    <div class="bg-white rounded-2xl shadow-xl p-8">
+      <h1 class="text-2xl font-bold text-center mb-6">欢迎回来</h1>
+      
+      <!-- Tab 切换 -->
+      <div class="flex gap-2 mb-6">
+        <button class="flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-colors"
+                :class="tab === 'password' ? 'btn-primary text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'"
+                @click="tab = 'password'">密码登录</button>
+        <button class="flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-colors"
+                :class="tab === 'sms' ? 'btn-primary text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'"
+                @click="tab = 'sms'">验证码登录</button>
+      </div>
+      
+      <!-- 密码登录表单 -->
+      <form x-show="tab === 'password'" @submit.prevent="login()" class="space-y-4">
+        <div>
+          <label class="edu-label">用户名/手机号</label>
+          <input type="text" x-model="username" class="edu-input" placeholder="请输入用户名或手机号"
+                 :class="{ 'error': errors.username }" @blur="validate()">
+          <p class="form-error" x-show="errors.username" x-text="errors.username"></p>
+        </div>
+        <div>
+          <label class="edu-label">密码</label>
+          <div class="relative">
+            <input :type="showPassword ? 'text' : 'password'" x-model="password" class="edu-input pr-10" 
+                   placeholder="请输入密码" :class="{ 'error': errors.password }">
+            <button type="button" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" 
+                    @click="showPassword = !showPassword">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+              </svg>
+            </button>
+          </div>
+          <p class="form-error" x-show="errors.password" x-text="errors.password"></p>
+        </div>
+        <div class="flex items-center justify-between text-sm">
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" x-model="remember" class="checkbox checkbox-xs checkbox-primary">
+            <span class="text-gray-600">记住我</span>
+          </label>
+          <a href="#" class="text-primary hover:underline">忘记密码？</a>
+        </div>
+        <button type="submit" class="btn-primary w-full justify-center" :disabled="loading">
+          <span x-show="!loading">登 录</span>
+          <span x-show="loading" class="loading loading-spinner loading-sm"></span>
+          <span x-show="loading">登录中...</span>
+        </button>
+      </form>
+      
+      <!-- 验证码登录表单 -->
+      <form x-show="tab === 'sms'" @submit.prevent="login()" class="space-y-4">
+        <div>
+          <label class="edu-label">手机号</label>
+          <input type="tel" x-model="phone" class="edu-input" placeholder="请输入手机号" maxlength="11"
+                 :class="{ 'error': errors.phone }">
+          <p class="form-error" x-show="errors.phone" x-text="errors.phone"></p>
+        </div>
+        <div>
+          <label class="edu-label">验证码</label>
+          <div class="flex gap-3">
+            <input type="text" x-model="smsCode" class="edu-input flex-1" placeholder="请输入验证码" maxlength="6">
+            <button type="button" class="btn-outline whitespace-nowrap" :disabled="countdown > 0"
+                    @click="sendSmsCode()">
+              <span x-show="countdown === 0">获取验证码</span>
+              <span x-show="countdown > 0" x-text="countdown + 's'"></span>
+            </button>
+          </div>
+          <p class="form-error" x-show="errors.smsCode" x-text="errors.smsCode"></p>
+        </div>
+        <button type="submit" class="btn-primary w-full justify-center" :disabled="loading">
+          <span x-show="!loading">登 录</span>
+          <span x-show="loading" class="loading loading-spinner loading-sm"></span>
+          <span x-show="loading">登录中...</span>
+        </button>
+      </form>
+      
+      <!-- 分隔线 -->
+      <div class="divider my-6 text-gray-400 text-sm">其他登录方式</div>
+      
+      <!-- 第三方登录 -->
+      <div class="flex justify-center gap-4">
+        <button class="btn btn-ghost btn-circle">
+          <svg class="w-6 h-6 text-green-500" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M8.691 2.188C3.891 2.188 0 5.476 0 9.53c0 2.212 1.17 4.203 3.002 5.55a.59.59 0 01.213.665l-.39 1.48c-.019.07-.048.141-.048.213 0 .163.13.295.29.295a.326.326 0 00.167-.054l1.903-1.114a.864.864 0 01.717-.098 10.16 10.16 0 002.837.403c.276 0 .543-.027.811-.05-.857-2.578.157-4.972 1.932-6.446 1.703-1.415 3.882-1.98 5.853-1.838-.576-3.583-4.196-6.348-8.596-6.348zM5.785 5.991c.642 0 1.162.529 1.162 1.18a1.17 1.17 0 01-1.162 1.178A1.17 1.17 0 014.623 7.17c0-.651.52-1.18 1.162-1.18zm5.813 0c.642 0 1.162.529 1.162 1.18a1.17 1.17 0 01-1.162 1.178 1.17 1.17 0 01-1.162-1.178c0-.651.52-1.18 1.162-1.18zm5.34 2.867c-1.797-.052-3.746.513-5.28 1.786-1.72 1.428-2.687 3.72-1.78 6.22.942 2.453 3.666 4.229 6.884 4.229.826 0 1.622-.12 2.361-.336a.722.722 0 01.598.082l1.584.926a.272.272 0 00.14.045c.134 0 .24-.11.24-.245 0-.06-.024-.12-.04-.178l-.325-1.233a.49.49 0 01.177-.554C23.028 18.48 24 16.82 24 14.98c0-3.21-2.931-5.837-7.062-6.122zm-2.036 2.87c.535 0 .969.44.969.982a.976.976 0 01-.969.983.976.976 0 01-.969-.983c0-.542.434-.982.97-.982zm4.072 0c.535 0 .969.44.969.982a.976.976 0 01-.969.983.976.976 0 01-.969-.983c0-.542.434-.982.97-.982z"/>
+          </svg>
+        </button>
+        <button class="btn btn-ghost btn-circle">
+          <svg class="w-6 h-6 text-blue-500" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 6.937l-2.14 10.06c-.166.715-.59.893-1.193.56l-3.26-2.403-1.574 1.517c-.174.174-.32.32-.656.32l.234-3.31 6.017-5.437c.262-.232-.057-.362-.405-.13L7.68 13.257l-3.195-1c-.696-.217-.708-.696.145-1.03l12.484-4.81c.578-.217 1.083.13.895 1.03z"/>
+          </svg>
+        </button>
+      </div>
+      
+      <!-- 注册链接 -->
+      <p class="text-center mt-6 text-sm text-gray-500">
+        还没有账号？<a th:href="@{/register}" class="text-primary font-medium hover:underline">立即注册</a>
+      </p>
+    </div>
+    
+    <!-- 底部 -->
+    <div class="text-center mt-6 text-sm text-gray-500">
+      <p>&copy; 2026 教育培训智能体 · 让学习更智能</p>
+    </div>
+  </div>
+  
+  <script th:src="@{/js/app.js}"></script>
+</body>
+</html>

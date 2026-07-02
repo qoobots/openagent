@@ -1,0 +1,79 @@
+<!-- 侧边栏菜单片段 -->
+<nav th:fragment="menuItems" class="sidebar-menu">
+  <!-- 学生菜单 -->
+  <th:block th:if="${userRole == 'student' or userRole == null}">
+    <div class="sidebar-section-title">学习中心</div>
+    <a th:href="@{/}" class="sidebar-menu-item" th:classappend="${currentPage == 'home'} ? ' active'">
+      <span class="menu-icon">🏠</span><span class="menu-text">首页</span>
+    </a>
+    <a th:href="@{/chat}" class="sidebar-menu-item" th:classappend="${currentPage == 'chat'} ? ' active'">
+      <span class="menu-icon">💬</span><span class="menu-text">AI辅导</span>
+    </a>
+    <a th:href="@{/explain}" class="sidebar-menu-item" th:classappend="${currentPage == 'explain'} ? ' active'">
+      <span class="menu-icon">📖</span><span class="menu-text">知识讲解</span>
+    </a>
+    <a th:href="@{/practice}" class="sidebar-menu-item" th:classappend="${currentPage == 'practice'} ? ' active'">
+      <span class="menu-icon">📝</span><span class="menu-text">练习中心</span>
+    </a>
+    <a th:href="@{/plan}" class="sidebar-menu-item" th:classappend="${currentPage == 'plan'} ? ' active'">
+      <span class="menu-icon">📋</span><span class="menu-text">学习计划</span>
+    </a>
+    <a th:href="@{/wrong-book}" class="sidebar-menu-item" th:classappend="${currentPage == 'wrong-book'} ? ' active'">
+      <span class="menu-icon">❌</span><span class="menu-text">错题本</span>
+    </a>
+    <a th:href="@{/knowledge-map}" class="sidebar-menu-item" th:classappend="${currentPage == 'knowledge-map'} ? ' active'">
+      <span class="menu-icon">🗺️</span><span class="menu-text">知识图谱</span>
+    </a>
+    <a th:href="@{/gamification}" class="sidebar-menu-item" th:classappend="${currentPage == 'gamification'} ? ' active'">
+      <span class="menu-icon">🏆</span><span class="menu-text">成就中心</span>
+    </a>
+  </th:block>
+  
+  <!-- 教师菜单 -->
+  <th:block th:if="${userRole == 'teacher'}">
+    <div class="sidebar-section-title">教学工作台</div>
+    <a th:href="@{/teacher}" class="sidebar-menu-item" th:classappend="${currentPage == 'teacher-home'} ? ' active'">
+      <span class="menu-icon">🏠</span><span class="menu-text">工作台</span>
+    </a>
+    <a th:href="@{/teacher/courseware}" class="sidebar-menu-item" th:classappend="${currentPage == 'courseware'} ? ' active'">
+      <span class="menu-icon">📚</span><span class="menu-text">课件生成</span>
+    </a>
+    <a th:href="@{/teacher/analysis}" class="sidebar-menu-item" th:classappend="${currentPage == 'analysis'} ? ' active'">
+      <span class="menu-icon">📊</span><span class="menu-text">质量分析</span>
+    </a>
+    <a th:href="@{/teacher/compare}" class="sidebar-menu-item" th:classappend="${currentPage == 'compare'} ? ' active'">
+      <span class="menu-icon">📈</span><span class="menu-text">班级对比</span>
+    </a>
+  </th:block>
+  
+  <!-- 家长菜单 -->
+  <th:block th:if="${userRole == 'parent'}">
+    <div class="sidebar-section-title">家长中心</div>
+    <a th:href="@{/parent}" class="sidebar-menu-item" th:classappend="${currentPage == 'parent-home'} ? ' active'">
+      <span class="menu-icon">🏠</span><span class="menu-text">首页</span>
+    </a>
+    <a th:href="@{/parent/report}" class="sidebar-menu-item" th:classappend="${currentPage == 'report'} ? ' active'">
+      <span class="menu-icon">📊</span><span class="menu-text">学情报告</span>
+    </a>
+    <a th:href="@{/parent/settings}" class="sidebar-menu-item" th:classappend="${currentPage == 'settings'} ? ' active'">
+      <span class="menu-icon">⚙️</span><span class="menu-text">管控设置</span>
+    </a>
+  </th:block>
+  
+  <!-- 管理员菜单 -->
+  <th:block th:if="${userRole == 'admin'}">
+    <div class="sidebar-section-title">管理后台</div>
+    <a th:href="@{/admin}" class="sidebar-menu-item" th:classappend="${currentPage == 'admin-home'} ? ' active'">
+      <span class="menu-icon">📺</span><span class="menu-text">学情大屏</span>
+    </a>
+    <a th:href="@{/admin/warning}" class="sidebar-menu-item" th:classappend="${currentPage == 'warning'} ? ' active'">
+      <span class="menu-icon">⚠️</span><span class="menu-text">学生预警</span>
+    </a>
+  </th:block>
+  
+  <!-- 通用菜单 -->
+  <div class="sidebar-section-title">个人</div>
+  <a th:href="@{/profile}" class="sidebar-menu-item" th:classappend="${currentPage == 'profile'} ? ' active'">
+    <span class="menu-icon">👤</span><span class="menu-text">个人中心</span>
+  </a>
+</nav>

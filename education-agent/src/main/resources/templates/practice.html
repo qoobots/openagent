@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org" th:attr="data-stage=${stage ?: 'middle'}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>练习中心 | 教育培训智能体</title>
+  <meta name="robots" content="noindex, nofollow">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css">
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body class="bg-base-100" x-data x-init="$store.user.applyStage()">
+  <div class="app-layout">
+    <aside class="app-sidebar" :class="{ 'collapsed': $store.ui.sidebarCollapsed, 'mobile-open': $store.ui.mobileSidebarOpen }">
+      <div class="sidebar-logo"><svg width="32" height="32" viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="8" fill="currentColor" opacity="0.1"/><path d="M16 6L8 12v8l8 6 8-6v-8l-8-6z" stroke="currentColor" stroke-width="2" fill="none"/><circle cx="16" cy="16" r="3" fill="currentColor"/></svg><span>教育智能体</span></div>
+      <nav class="sidebar-menu" th:replace="~{fragments/sidebar :: menuItems}"></nav>
+    </aside>
+    <div class="app-main">
+      <header class="app-header" th:replace="~{fragments/header :: topBar}"></header>
+      <div class="fixed inset-0 bg-black/50 z-40 lg:hidden" x-show="$store.ui.mobileSidebarOpen" @click="$store.ui.mobileSidebarOpen = false"></div>
+      
+      <main class="app-content" x-data="{
+        mode: 'config', // config | answering | result
+        subject: 'math', knowledge: '', difficulty: 3, count: 10, type: 'choice',
+        currentQ: 0, timer: 0, timerInterval: null, answers: [],
+        questions: [
+          { id: 1, question: '函数 y=2(x-1)²+3 的顶点坐标为：', options: ['A. (1,3)', 'B. (-1,3)', 'C. (1,-3)', 'D. (2,3)'], answer: 'A', type: 'choice' },
+          { id: 2, question: '二次函数 y=x²-4x+5 的最小值为：', options: ['A. 0', 'B. 1', 'C. 2', 'D. 5'], answer: 'B', type: 'choice' },
+          { id: 3, question: '若 f(x)=x²+2x+1，则 f(2)=', options: ['A. 5', 'B. 7', 'C. 9', 'D. 11'], answer: 'C', type: 'choice' }
+        ],
+        selectedAnswer: '',
+        
+        get formattedTime() { const m = Math.floor(this.timer/60), s = this.timer%60; return String(m).padStart(2,'0')+':'+String(s).padStart(2,'0'); },
+        get progress() { return Math.round(((this.currentQ+1)/this.questions.length)*100); },
+        get correctCount() { return this.answers.filter((a,i) => a === this.questions[i]?.answer).length; },
+        
+        async generateQuestions() {
+          this.mode = 'answering';
+          this.timer = 0; this.answers = []; this.currentQ = 0;
+          this.timerInterval = setInterval(() => this.timer++, 1000);
+        },
+        
+        selectAnswer(opt) { if (this.mode === 'answering') { this.selectedAnswer = opt; } },
+        
+        nextQuestion() {
+          this.answers[this.currentQ] = this.selectedAnswer;
+          this.selectedAnswer = '';
+          if (this.currentQ < this.questions.length - 1) { this.currentQ++; }
+        },
+        prevQuestion() { if (this.currentQ > 0) { this.answers[this.currentQ] = this.selectedAnswer; this.currentQ--; this.selectedAnswer = this.answers[this.currentQ] || ''; } },
+        
+        submitExam() {
+          clearInterval(this.timerInterval);
+          this.answers[this.currentQ] = this.selectedAnswer;
+          this.mode = 'result';
+        },
+        jumpTo(idx) { this.answers[this.currentQ] = this.selectedAnswer; this.currentQ = idx; this.selectedAnswer = this.answers[idx] || ''; }
+      }">
+        
+        <h1 class="text-2xl font-bold mb-6">📝 练习中心</h1>
+        
+        <!-- 配置模式 -->
+        <div x-show="mode === 'config'" class="space-y-6">
+          <!-- 快速练习 -->
+          <div class="edu-card">
+            <h2 class="edu-card-title mb-4">快速练习</h2>
+            <div class="flex flex-wrap gap-2">
+              <button class="btn-outline btn-sm" :class="{ 'btn-primary text-white': type === 'choice' }" @click="type='choice'">选择题</button>
+              <button class="btn-outline btn-sm" :class="{ 'btn-primary text-white': type === 'fill' }" @click="type='fill'">填空题</button>
+              <button class="btn-outline btn-sm" :class="{ 'btn-primary text-white': type === 'judge' }" @click="type='judge'">判断题</button>
+              <button class="btn-outline btn-sm" :class="{ 'btn-primary text-white': type === 'short' }" @click="type='short'">简答题</button>
+              <button class="btn-outline btn-sm" :class="{ 'btn-primary text-white': type === 'comprehensive' }" @click="type='comprehensive'">综合题</button>
+            </div>
+          </div>
+          <!-- 智能出题 -->
+          <div class="edu-card">
+            <h2 class="edu-card-title mb-4">智能出题</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="edu-label">课程</label>
+                <select x-model="subject" class="edu-select w-full">
+                  <option value="math">高中数学</option>
+                  <option value="chinese">高中语文</option>
+                  <option value="english">高中英语</option>
+                  <option value="physics">高中物理</option>
+                </select>
+              </div>
+              <div>
+                <label class="edu-label">知识点</label>
+                <input type="text" x-model="knowledge" class="edu-input" placeholder="全部">
+              </div>
+              <div>
+                <label class="edu-label">难度</label>
+                <div class="flex gap-1">
+                  <template x-for="i in 5" :key="i">
+                    <button class="text-xl" :class="i <= difficulty ? 'text-yellow-400' : 'text-gray-300'" @click="difficulty = i">★</button>
+                  </template>
+                </div>
+              </div>
+              <div>
+                <label class="edu-label">题目数量</label>
+                <input type="number" x-model="count" class="edu-input" min="1" max="50">
+              </div>
+            </div>
+            <button class="btn-primary mt-4" @click="generateQuestions()">AI 生成试题</button>
+          </div>
+        </div>
+        
+        <!-- 答题模式 -->
+        <div x-show="mode === 'answering'" class="space-y-6">
+          <!-- 进度 -->
+          <div class="edu-card">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-sm font-medium">第 <span x-text="currentQ+1"></span>/<span x-text="questions.length"></span> 题</span>
+              <span class="text-sm text-gray-500">⏱ <span x-text="formattedTime"></span></span>
+            </div>
+            <div class="edu-progress">
+              <div class="edu-progress-bar" :style="'width:'+progress+'%'"></div>
+            </div>
+          </div>
+          <!-- 题目 -->
+          <div class="edu-card">
+            <p class="font-medium text-lg mb-4" x-text="(currentQ+1) + '. ' + questions[currentQ]?.question"></p>
+            <div class="space-y-3">
+              <template x-for="(opt, idx) in (questions[currentQ]?.options || [])" :key="idx">
+                <button class="w-full text-left p-4 rounded-lg border-2 transition-all"
+                        :class="selectedAnswer === opt.charAt(0) ? 'border-primary bg-primary/5' : 'border-gray-100 hover:border-gray-300'"
+                        @click="selectAnswer(opt)">
+                  <span x-text="opt"></span>
+                </button>
+              </template>
+            </div>
+            <!-- 导航 -->
+            <div class="flex justify-between mt-6">
+              <button class="btn-outline btn-sm" :disabled="currentQ === 0" @click="prevQuestion()">上一题</button>
+              <button x-show="currentQ < questions.length - 1" class="btn-primary btn-sm" @click="nextQuestion()">下一题</button>
+              <button x-show="currentQ === questions.length - 1" class="btn-primary btn-sm" @click="submitExam()">提交</button>
+            </div>
+          </div>
+          <!-- 答题卡 -->
+          <div class="edu-card">
+            <h3 class="font-medium mb-3">答题卡</h3>
+            <div class="flex flex-wrap gap-2">
+              <template x-for="(q, idx) in questions" :key="idx">
+                <button class="w-10 h-10 rounded-lg text-sm font-medium transition-all"
+                        :class="idx === currentQ ? 'btn-primary text-white' : answers[idx] ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'"
+                        @click="jumpTo(idx)" x-text="idx + 1"></button>
+              </template>
+            </div>
+          </div>
+        </div>
+        
+        <!-- 结果模式 -->
+        <div x-show="mode === 'result'" class="space-y-6">
+          <div class="edu-card text-center py-8">
+            <h2 class="text-2xl font-bold mb-2">📊 答题报告</h2>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6 max-w-lg mx-auto">
+              <div><p class="text-3xl font-bold text-primary" x-text="Math.round(correctCount/questions.length*100)"></p><p class="text-xs text-gray-400">得分</p></div>
+              <div><p class="text-3xl font-bold" x-text="formattedTime"></p><p class="text-xs text-gray-400">用时</p></div>
+              <div><p class="text-3xl font-bold text-green-500" x-text="correctCount"></p><p class="text-xs text-gray-400">正确</p></div>
+              <div><p class="text-3xl font-bold text-red-500" x-text="questions.length - correctCount"></p><p class="text-xs text-gray-400">错误</p></div>
+            </div>
+          </div>
+          <!-- 逐题解析 -->
+          <div class="edu-card">
+            <h3 class="font-semibold mb-4">逐题解析</h3>
+            <div class="space-y-4">
+              <template x-for="(q, idx) in questions" :key="idx">
+                <div class="p-4 rounded-lg border" :class="answers[idx] === q.answer ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'">
+                  <div class="flex items-center gap-2 mb-2">
+                    <span x-text="answers[idx] === q.answer ? '✅' : '❌'"></span>
+                    <span class="font-medium" x-text="'第'+(idx+1)+'题'"></span>
+                  </div>
+                  <p class="text-sm mb-1" x-text="q.question"></p>
+                  <p class="text-sm">你的答案: <span :class="answers[idx] === q.answer ? 'text-green-600' : 'text-red-600'" x-text="answers[idx] || '未作答'"></span></p>
+                  <p x-show="answers[idx] !== q.answer" class="text-sm text-green-600">正确答案: <span x-text="q.answer"></span></p>
+                </div>
+              </template>
+            </div>
+          </div>
+          <div class="flex gap-3">
+            <button class="btn-primary" @click="mode='config'">重新练习</button>
+            <a th:href="@{/wrong-book}" class="btn-outline">查看错题</a>
+          </div>
+        </div>
+        
+      </main>
+      <footer class="app-footer" th:replace="~{fragments/footer :: bottom}"></footer>
+    </div>
+  </div>
+  <script th:src="@{/js/app.js}"></script>
+</body>
+</html>

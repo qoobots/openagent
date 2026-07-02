@@ -7,6 +7,26 @@ spring:
   application:
     name: education-agent
 
+  # 静态资源配置
+  web:
+    resources:
+      static-locations: classpath:/static/
+      cache:
+        period: 86400  # 静态资源缓存1天
+      chain:
+        strategy:
+          content:
+            enabled: true
+            paths: /css/**,/js/**,/images/**,/fonts/**
+
+  # Thymeleaf 模板引擎配置
+  thymeleaf:
+    prefix: classpath:/templates/
+    suffix: .html
+    mode: HTML
+    encoding: UTF-8
+    cache: false  # 开发环境关闭缓存，生产环境设为true
+
   # 数据源配置
   datasource:
     driver-class-name: org.postgresql.Driver
@@ -31,6 +51,32 @@ spring:
     consumer:
       group-id: education-agent-group
       auto-offset-reset: earliest
+
+  # AI 配置 (Spring AI OpenAI)
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY:sk-your-api-key-here}
+      base-url: ${OPENAI_BASE_URL:https://api.openai.com}
+      chat:
+        enabled: true
+        options:
+          model: gpt-4o-mini
+          temperature: 0.7
+          max-tokens: 2048
+      embedding:
+        enabled: true
+        options:
+          model: text-embedding-3-small
+      audio:
+        speech:
+          enabled: true
+          options:
+            model: tts-1
+            voice: alloy
+        transcription:
+          enabled: true
+          options:
+            model: whisper-1
 
 # MyBatis Plus配置
 mybatis-plus:
@@ -62,6 +108,13 @@ agent:
     index-type: ivfflat
     metric-type: cosine
     index-lists: 100
+
+  # 安全配置
+  security:
+    jwt:
+      # JWT 签名密钥（生产环境必须通过环境变量注入，长度 ≥ 32 字符）
+      secret: ${EDUCATION_AGENT_JWT_SECRET:education-agent-default-jwt-secret-key-min-32-chars-2026}
+      issuer: education-agent
 
 # SpringDoc配置
 springdoc:

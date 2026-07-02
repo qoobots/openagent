@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org" th:attr="data-stage=${stage ?: 'middle'}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>成就中心 | 教育培训智能体</title>
+  <meta name="robots" content="noindex, nofollow">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css">
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body class="bg-base-100" x-data x-init="$store.user.applyStage()">
+  <div class="app-layout">
+    <aside class="app-sidebar" :class="{ 'collapsed': $store.ui.sidebarCollapsed, 'mobile-open': $store.ui.mobileSidebarOpen }">
+      <div class="sidebar-logo"><svg width="32" height="32" viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="8" fill="currentColor" opacity="0.1"/><path d="M16 6L8 12v8l8 6 8-6v-8l-8-6z" stroke="currentColor" stroke-width="2" fill="none"/><circle cx="16" cy="16" r="3" fill="currentColor"/></svg><span>教育智能体</span></div>
+      <nav class="sidebar-menu" th:replace="~{fragments/sidebar :: menuItems}"></nav>
+    </aside>
+    <div class="app-main">
+      <header class="app-header" th:replace="~{fragments/header :: topBar}"></header>
+      <div class="fixed inset-0 bg-black/50 z-40 lg:hidden" x-show="$store.ui.mobileSidebarOpen" @click="$store.ui.mobileSidebarOpen = false"></div>
+      
+      <main class="app-content" x-data="{
+        points: 1280, todayPoints: 45, streak: 7, rank: 5,
+        badges: [
+          { name: '初学者', icon: '🏅', unlocked: true },
+          { name: '勤学苦练', icon: '🏅', unlocked: true },
+          { name: '连续7天', icon: '🏅', unlocked: true },
+          { name: '数学达人', icon: '🏅', unlocked: true },
+          { name: '首次满分', icon: '🏅', unlocked: true },
+          { name: '连续30天', icon: '🔒', unlocked: false },
+          { name: '全科精通', icon: '🔒', unlocked: false },
+          { name: '学霸之路', icon: '🔒', unlocked: false }
+        ],
+        leaderboard: [
+          { name: '张三', points: 2580, rank: 1 },
+          { name: '李四', points: 2340, rank: 2 },
+          { name: '王五', points: 2100, rank: 3 },
+          { name: '赵六', points: 1890, rank: 4 },
+          { name: '我', points: 1280, rank: 5 }
+        ],
+        shopItems: [
+          { name: '7天VIP', cost: 500, icon: '⭐' },
+          { name: '专属头像框', cost: 200, icon: '🖼️' },
+          { name: '解题提示卡', cost: 100, icon: '💡' },
+          { name: '学习资料包', cost: 300, icon: '📦' }
+        ],
+        scope: 'class', period: 'week'
+      }">
+        
+        <h1 class="text-2xl font-bold mb-6">🏆 成就中心</h1>
+        
+        <!-- 积分概览 -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div class="edu-card text-center">
+            <p class="text-3xl font-bold text-primary" x-text="points.toLocaleString()"></p>
+            <p class="text-sm text-gray-500 mt-1">当前积分</p>
+          </div>
+          <div class="edu-card text-center">
+            <p class="text-3xl font-bold text-green-500" x-text="'+' + todayPoints"></p>
+            <p class="text-sm text-gray-500 mt-1">今日获得</p>
+          </div>
+          <div class="edu-card text-center">
+            <p class="text-3xl font-bold text-orange-500" x-text="streak + '天'"></p>
+            <p class="text-sm text-gray-500 mt-1">连续打卡</p>
+          </div>
+        </div>
+        
+        <!-- 徽章墙 -->
+        <div class="edu-card mb-6">
+          <h2 class="edu-card-title mb-4">🏅 徽章墙</h2>
+          <div class="grid grid-cols-4 md:grid-cols-8 gap-4">
+            <template x-for="badge in badges" :key="badge.name">
+              <div class="text-center" :class="{ 'opacity-30 grayscale': !badge.unlocked }">
+                <div class="text-3xl mb-1" x-text="badge.icon"></div>
+                <p class="text-xs" x-text="badge.name"></p>
+              </div>
+            </template>
+          </div>
+        </div>
+        
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <!-- 排行榜 -->
+          <div class="edu-card">
+            <div class="flex items-center justify-between mb-4">
+              <h2 class="edu-card-title">🏆 排行榜</h2>
+              <div class="flex gap-2">
+                <select x-model="scope" class="select select-xs select-bordered">
+                  <option value="class">班级</option>
+                  <option value="grade">年级</option>
+                  <option value="school">全校</option>
+                </select>
+                <select x-model="period" class="select select-xs select-bordered">
+                  <option value="week">本周</option>
+                  <option value="month">本月</option>
+                </select>
+              </div>
+            </div>
+            <div class="space-y-3">
+              <template x-for="user in leaderboard" :key="user.rank">
+                <div class="flex items-center gap-3 p-2 rounded-lg" :class="{ 'bg-primary/5 font-medium': user.name === '我' }">
+                  <span class="w-8 text-center text-lg" x-text="user.rank === 1 ? '🥇' : user.rank === 2 ? '🥈' : user.rank === 3 ? '🥉' : user.rank"></span>
+                  <span class="flex-1" x-text="user.name"></span>
+                  <span class="font-medium" x-text="user.points.toLocaleString() + '分'"></span>
+                </div>
+              </template>
+            </div>
+          </div>
+          
+          <!-- 积分商城 -->
+          <div class="edu-card">
+            <h2 class="edu-card-title mb-4">🎁 积分商城</h2>
+            <div class="grid grid-cols-2 gap-4">
+              <template x-for="item in shopItems" :key="item.name">
+                <div class="border border-gray-100 rounded-lg p-4 text-center hover:shadow-md transition-shadow">
+                  <div class="text-3xl mb-2" x-text="item.icon"></div>
+                  <p class="font-medium text-sm" x-text="item.name"></p>
+                  <p class="text-primary font-bold text-sm mt-1" x-text="item.cost + '分'"></p>
+                  <button class="btn-outline btn-sm w-full mt-2" :disabled="points < item.cost">兑换</button>
+                </div>
+              </template>
+            </div>
+          </div>
+        </div>
+        
+      </main>
+      <footer class="app-footer" th:replace="~{fragments/footer :: bottom}"></footer>
+    </div>
+  </div>
+  <script th:src="@{/js/app.js}"></script>
+</body>
+</html>

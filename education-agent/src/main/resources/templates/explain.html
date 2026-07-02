@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org" th:attr="data-stage=${stage ?: 'middle'}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>知识点讲解 | 教育培训智能体</title>
+  <meta name="description" content="AI智能讲解各学科知识点，包含定义、公式、例题和常见错误分析">
+  <meta name="robots" content="noindex, nofollow">
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css">
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body class="bg-base-100" x-data x-init="$store.user.applyStage()">
+  <div class="app-layout">
+    <!-- 侧边栏 -->
+    <aside class="app-sidebar" 
+           :class="{ 'collapsed': $store.ui.sidebarCollapsed, 'mobile-open': $store.ui.mobileSidebarOpen }">
+      <div class="sidebar-logo">
+        <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+          <rect width="32" height="32" rx="8" fill="currentColor" opacity="0.1"/>
+          <path d="M16 6L8 12v8l8 6 8-6v-8l-8-6z" stroke="currentColor" stroke-width="2" fill="none"/>
+          <circle cx="16" cy="16" r="3" fill="currentColor"/>
+        </svg>
+        <span>教育智能体</span>
+      </div>
+      <nav class="sidebar-menu" th:replace="~{fragments/sidebar :: menuItems}"></nav>
+    </aside>
+    
+    <!-- 主内容区 -->
+    <div class="app-main">
+      <header class="app-header" th:replace="~{fragments/header :: topBar}"></header>
+      <div class="fixed inset-0 bg-black/50 z-40 lg:hidden" 
+           x-show="$store.ui.mobileSidebarOpen" 
+           @click="$store.ui.mobileSidebarOpen = false"></div>
+      
+      <main class="app-content" x-data="{
+        searchQuery: '',
+        searchResults: [],
+        selectedKnowledge: null,
+        depth: 'standard',
+        includeExamples: true,
+        loading: false,
+        showAnswer: false,
+        
+        async search() {
+          if (!this.searchQuery.trim()) return;
+          this.loading = true;
+          try {
+            const res = await api.get('/api/knowledge/search?q=' + encodeURIComponent(this.searchQuery));
+            this.searchResults = res.data || [];
+          } catch (e) { toast.error('搜索失败'); }
+          finally { this.loading = false; }
+        },
+        
+        async selectKnowledge(k) {
+          this.selectedKnowledge = k;
+          this.loading = true;
+          try {
+            const res = await api.post('/api/knowledge/explain', {
+              knowledgeId: k.id,
+              depth: this.depth,
+              includeExamples: this.includeExamples
+            });
+            this.selectedKnowledge = { ...k, ...res.data };
+          } catch (e) { toast.error('获取讲解失败'); }
+          finally { this.loading = false; }
+        },
+        
+        startPractice() {
+          if (this.selectedKnowledge) {
+            window.location.href = '/education-agent/practice?knowledgeId=' + this.selectedKnowledge.id;
+          }
+        }
+      }">
+        
+        <!-- 页面标题 -->
+        <div class="mb-6">
+          <h1 class="text-2xl font-bold">📖 知识点讲解</h1>
+          <p class="text-gray-500 mt-1">AI智能讲解，深入浅出理解知识点</p>
+        </div>
+        
+        <!-- 搜索区域 -->
+        <div class="edu-card mb-6">
+          <div class="flex gap-3">
+            <div class="flex-1 relative">
+              <input type="text" x-model="searchQuery" class="edu-input pl-10" 
+                     placeholder="输入关键词，如'勾股定理'、'二次函数'..."
+                     @keydown.enter="search()" @input.debounce.300ms="search()">
+              <svg class="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+              </svg>
+            </div>
+            <button class="btn-primary" @click="search()" :disabled="loading">
+              <span x-show="!loading">搜索</span>
+              <span x-show="loading" class="loading loading-spinner loading-sm"></span>
+            </button>
+          </div>
+          
+          <!-- 搜索结果 -->
+          <div x-show="searchResults.length > 0" class="mt-4 border-t border-gray-100 pt-4">
+            <p class="text-sm text-gray-500 mb-2">搜索结果：</p>
+            <div class="space-y-2 max-h-48 overflow-y-auto">
+              <template x-for="item in searchResults" :key="item.id">
+                <button class="w-full text-left p-3 rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-between"
+                        @click="selectKnowledge(item)">
+                  <div>
+                    <span class="font-medium" x-text="item.name"></span>
+                    <span class="text-xs text-gray-400 ml-2" x-text="item.subject + ' · ' + item.stage"></span>
+                  </div>
+                  <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                  </svg>
+                </button>
+              </template>
+            </div>
+          </div>
+        </div>
+        
+        <!-- 讲解深度选择 -->
+        <div class="edu-card mb-6" x-show="selectedKnowledge">
+          <h3 class="font-medium mb-3">讲解深度</h3>
+          <div class="flex flex-wrap gap-4">
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="radio" name="depth" value="basic" x-model="depth" class="radio radio-primary radio-sm">
+              <span>基础</span>
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="radio" name="depth" value="standard" x-model="depth" class="radio radio-primary radio-sm">
+              <span>标准</span>
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="radio" name="depth" value="advanced" x-model="depth" class="radio radio-primary radio-sm">
+              <span>进阶</span>
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer ml-4">
+              <input type="checkbox" x-model="includeExamples" class="checkbox checkbox-sm checkbox-primary">
+              <span>包含例题</span>
+            </label>
+          </div>
+        </div>
+        
+        <!-- 讲解内容 -->
+        <div x-show="selectedKnowledge && loading" class="space-y-4">
+          <div class="edu-card">
+            <div class="skeleton skeleton-title"></div>
+            <div class="skeleton skeleton-text w-full"></div>
+            <div class="skeleton skeleton-text w-3/4"></div>
+            <div class="skeleton skeleton-text w-5/6"></div>
+          </div>
+        </div>
+        
+        <div x-show="selectedKnowledge && !loading" class="edu-card">
+          <!-- 知识点标题 -->
+          <div class="flex items-center gap-3 mb-6">
+            <span class="text-3xl">📖</span>
+            <div>
+              <h2 class="text-xl font-bold" x-text="selectedKnowledge?.name"></h2>
+              <p class="text-sm text-gray-500" x-text="(selectedKnowledge?.subject || '') + ' · ' + (selectedKnowledge?.stage || '')"></p>
+            </div>
+          </div>
+          
+          <!-- 定义 -->
+          <div class="mb-6">
+            <h3 class="font-semibold text-lg mb-2 flex items-center gap-2">
+              <span>📌</span> 定义
+            </h3>
+            <div class="p-4 bg-blue-50 rounded-lg border-l-4 border-blue-400" x-html="selectedKnowledge?.definition || '暂无定义'"></div>
+          </div>
+          
+          <!-- 公式 -->
+          <div class="mb-6" x-show="selectedKnowledge?.formula">
+            <h3 class="font-semibold text-lg mb-2 flex items-center gap-2">
+              <span>📐</span> 公式
+            </h3>
+            <div class="p-4 bg-gray-50 rounded-lg text-center text-lg font-mono" x-html="selectedKnowledge?.formula"></div>
+          </div>
+          
+          <!-- 详细讲解 -->
+          <div class="mb-6">
+            <h3 class="font-semibold text-lg mb-2 flex items-center gap-2">
+              <span>💡</span> 详细讲解
+            </h3>
+            <div class="prose prose-sm max-w-none" x-html="selectedKnowledge?.explanation || '暂无讲解内容'"></div>
+          </div>
+          
+          <!-- 例题 -->
+          <div class="mb-6" x-show="selectedKnowledge?.examples?.length > 0">
+            <h3 class="font-semibold text-lg mb-2 flex items-center gap-2">
+              <span>📝</span> 例题
+            </h3>
+            <div class="space-y-4">
+              <template x-for="(ex, idx) in (selectedKnowledge?.examples || [])" :key="idx">
+                <div class="border border-gray-100 rounded-lg p-4">
+                  <p class="font-medium mb-2" x-text="'例' + (idx+1) + ': ' + (ex.question || '')"></p>
+                  <button class="text-sm text-primary hover:underline" @click="showAnswer = !showAnswer">
+                    <span x-show="!showAnswer">点击查看答案</span>
+                    <span x-show="showAnswer">收起答案</span>
+                  </button>
+                  <div x-show="showAnswer" class="mt-2 p-3 bg-green-50 rounded text-sm" x-html="ex.answer || ''"></div>
+                </div>
+              </template>
+            </div>
+          </div>
+          
+          <!-- 常见错误 -->
+          <div class="mb-6" x-show="selectedKnowledge?.commonErrors?.length > 0">
+            <h3 class="font-semibold text-lg mb-2 flex items-center gap-2">
+              <span>⚠️</span> 常见错误
+            </h3>
+            <ul class="space-y-2">
+              <template x-for="(err, idx) in (selectedKnowledge?.commonErrors || [])" :key="idx">
+                <li class="flex items-start gap-2 text-sm">
+                  <span class="text-red-500 mt-0.5">•</span>
+                  <span x-text="err"></span>
+                </li>
+              </template>
+            </ul>
+          </div>
+          
+          <!-- 关联知识 -->
+          <div class="mb-6" x-show="selectedKnowledge?.relatedKnowledge?.length > 0">
+            <h3 class="font-semibold text-lg mb-2 flex items-center gap-2">
+              <span>🔗</span> 关联知识
+            </h3>
+            <div class="flex flex-wrap gap-2">
+              <template x-for="rel in (selectedKnowledge?.relatedKnowledge || [])" :key="rel.id">
+                <a :href="'/education-agent/explain?id=' + rel.id" 
+                   class="px-3 py-1 bg-gray-100 hover:bg-primary hover:text-white rounded-full text-sm transition-colors"
+                   x-text="rel.name"></a>
+              </template>
+            </div>
+          </div>
+          
+          <!-- 操作按钮 -->
+          <div class="flex flex-wrap gap-3 pt-4 border-t border-gray-100">
+            <button class="btn-primary" @click="startPractice()">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+              </svg>
+              开始练习
+            </button>
+            <button class="btn-outline">加入学习计划</button>
+            <button class="btn-ghost">收藏</button>
+          </div>
+        </div>
+        
+        <!-- 空状态 -->
+        <div x-show="!selectedKnowledge && !loading" class="empty-state">
+          <div class="empty-state-icon">📖</div>
+          <h3 class="empty-state-title">搜索知识点开始学习</h3>
+          <p class="empty-state-desc">输入关键词搜索，AI将为你深入浅出讲解知识点</p>
+        </div>
+        
+      </main>
+      
+      <footer class="app-footer" th:replace="~{fragments/footer :: bottom}"></footer>
+    </div>
+  </div>
+  
+  <script th:src="@{/js/app.js}"></script>
+</body>
+</html>

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org" th:attr="data-stage=${stage ?: 'high'}">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>班级对比 | 教育培训智能体</title><meta name="robots" content="noindex, nofollow"><script src="https://cdn.tailwindcss.com"></script><link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css"><script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script><link rel="stylesheet" th:href="@{/css/app.css}"></head>
+<body class="bg-base-100" x-data x-init="$store.user.applyStage()">
+<div class="app-layout">
+  <aside class="app-sidebar" :class="{ 'collapsed': $store.ui.sidebarCollapsed, 'mobile-open': $store.ui.mobileSidebarOpen }"><div class="sidebar-logo"><svg width="32" height="32" viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="8" fill="currentColor" opacity="0.1"/><path d="M16 6L8 12v8l8 6 8-6v-8l-8-6z" stroke="currentColor" stroke-width="2" fill="none"/><circle cx="16" cy="16" r="3" fill="currentColor"/></svg><span>教育智能体</span></div><nav class="sidebar-menu" th:replace="~{fragments/sidebar :: menuItems}"></nav></aside>
+  <div class="app-main">
+    <header class="app-header" th:replace="~{fragments/header :: topBar}"></header>
+    <div class="fixed inset-0 bg-black/50 z-40 lg:hidden" x-show="$store.ui.mobileSidebarOpen" @click="$store.ui.mobileSidebarOpen = false"></div>
+    <main class="app-content" x-data="{
+      selectedClasses: ['class1','class2','class3'],
+      course: '二次函数',
+      comparison: [
+        { knowledge: '顶点式', class1: 85, class2: 72, class3: 80 },
+        { knowledge: '单调性', class1: 78, class2: 68, class3: 75 },
+        { knowledge: '应用题', class1: 70, class2: 60, class3: 65 },
+        { knowledge: '综合题', class1: 65, class2: 55, class3: 60 }
+      ]
+    }">
+      <h1 class="text-2xl font-bold mb-6">📈 班级对比分析</h1>
+      <div class="edu-card mb-6">
+        <div class="flex flex-wrap gap-4 items-end">
+          <div><label class="edu-label">选择班级</label><div class="flex gap-2"><label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" value="class1" x-model="selectedClasses" class="checkbox checkbox-xs checkbox-primary"><span class="text-sm">高三(1)</span></label><label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" value="class2" x-model="selectedClasses" class="checkbox checkbox-xs checkbox-primary"><span class="text-sm">高三(2)</span></label><label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" value="class3" x-model="selectedClasses" class="checkbox checkbox-xs checkbox-primary"><span class="text-sm">高三(3)</span></label></div></div>
+          <div><label class="edu-label">选择课程</label><select x-model="course" class="edu-select"><option>二次函数</option><option>三角函数</option><option>概率统计</option></select></div>
+        </div>
+      </div>
+      <div class="edu-card mb-6">
+        <h2 class="edu-card-title mb-4">知识点掌握对比</h2>
+        <div class="overflow-x-auto"><table class="edu-table">
+          <thead><tr><th>知识点</th><th>高三(1)</th><th>高三(2)</th><th>高三(3)</th></tr></thead>
+          <tbody><template x-for="row in comparison" :key="row.knowledge"><tr><td class="font-medium" x-text="row.knowledge"></td><td><div class="flex items-center gap-2"><div class="w-24 edu-progress"><div class="edu-progress-bar" :style="'width:'+row.class1+'%'"></div></div><span class="text-sm" x-text="row.class1+'%'"></span></div></td><td><div class="flex items-center gap-2"><div class="w-24 edu-progress"><div class="edu-progress-bar" :style="'width:'+row.class2+'%'"></div></div><span class="text-sm" x-text="row.class2+'%'"></span></div></td><td><div class="flex items-center gap-2"><div class="w-24 edu-progress"><div class="edu-progress-bar" :style="'width:'+row.class3+'%'"></div></div><span class="text-sm" x-text="row.class3+'%'"></span></div></td></tr></template></tbody>
+        </table></div>
+      </div>
+      <div class="edu-card">
+        <h2 class="edu-card-title mb-4">💡 AI 对比分析</h2>
+        <div class="text-sm space-y-2">
+          <p>高三(1)班整体表现最优，尤其在综合题方面领先其他班级约10个百分点。</p>
+          <p>高三(2)班在应用题上需要加强，建议增加应用题训练，关注建模能力培养。</p>
+          <p>建议三个班级联合开展三角函数专题复习，统一教学进度。</p>
+        </div>
+      </div>
+    </main>
+    <footer class="app-footer" th:replace="~{fragments/footer :: bottom}"></footer>
+  </div>
+</div>
+<script th:src="@{/js/app.js}"></script>
+</body></html>

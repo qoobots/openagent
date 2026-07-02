@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org" th:attr="data-stage=${stage ?: 'high'}">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>学情数据大屏 | 教育培训智能体</title>
+  <meta name="robots" content="noindex, nofollow">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css">
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body class="bg-base-100" x-data x-init="$store.user.applyStage()">
+  <div class="app-layout">
+    <aside class="app-sidebar" :class="{ 'collapsed': $store.ui.sidebarCollapsed, 'mobile-open': $store.ui.mobileSidebarOpen }">
+      <div class="sidebar-logo"><svg width="32" height="32" viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="8" fill="currentColor" opacity="0.1"/><path d="M16 6L8 12v8l8 6 8-6v-8l-8-6z" stroke="currentColor" stroke-width="2" fill="none"/><circle cx="16" cy="16" r="3" fill="currentColor"/></svg><span>教育智能体</span></div>
+      <nav class="sidebar-menu" th:replace="~{fragments/sidebar :: menuItems}"></nav>
+    </aside>
+    <div class="app-main">
+      <header class="app-header" th:replace="~{fragments/header :: topBar}"></header>
+      <div class="fixed inset-0 bg-black/50 z-40 lg:hidden" x-show="$store.ui.mobileSidebarOpen" @click="$store.ui.mobileSidebarOpen = false"></div>
+      
+      <main class="app-content" x-data="{
+        scope: 'all',
+        month: '2026-07',
+        isFullscreen: false,
+        coreMetrics: { totalStudents: 1280, activeRate: 85, avgScore: 82.5, warningCount: 45, activeTrend: 'up', scoreTrend: 'up', warningTrend: 'down' },
+        heatmap: {
+          grades: ['高一','高二','高三'],
+          subjects: ['数学','语文','英语','物理','化学'],
+          data: [
+            [72,85,78,65,70],[68,80,82,70,65],[75,88,76,72,68]
+          ]
+        },
+        subjectDist: [
+          { name: '数学', pct: 28, color: 'bg-blue-500' },
+          { name: '语文', pct: 22, color: 'bg-green-500' },
+          { name: '英语', pct: 20, color: 'bg-yellow-500' },
+          { name: '物理', pct: 15, color: 'bg-purple-500' },
+          { name: '其他', pct: 15, color: 'bg-gray-400' }
+        ],
+        monthlyTrend: [
+          { month: '3月', active: 78, score: 79, hours: 32 },
+          { month: '4月', active: 80, score: 80, hours: 35 },
+          { month: '5月', active: 82, score: 81, hours: 38 },
+          { month: '6月', active: 84, score: 82, hours: 40 },
+          { month: '7月', active: 85, score: 82.5, hours: 42 }
+        ],
+        warningStats: [
+          { type: '成绩下滑', count: 20, color: 'bg-red-500' },
+          { type: '出勤异常', count: 15, color: 'bg-yellow-500' },
+          { type: '学习习惯', count: 10, color: 'bg-orange-500' }
+        ],
+        getHeatColor(val) {
+          if (val >= 80) return 'bg-green-400';
+          if (val >= 60) return 'bg-yellow-400';
+          return 'bg-red-400';
+        },
+        toggleFullscreen() {
+          this.isFullscreen = !this.isFullscreen;
+          if (this.isFullscreen) {
+            document.documentElement.requestFullscreen?.();
+          } else {
+            document.exitFullscreen?.();
+          }
+        }
+      }" x-init="$store.user.applyStage(); loadDashboard()">
+        <div class="flex items-center justify-between mb-6 flex-wrap gap-3">
+          <h1 class="text-2xl font-bold">📊 学情数据大屏</h1>
+          <div class="flex items-center gap-3">
+            <select x-model="scope" class="select select-sm select-bordered">
+              <option value="all">全校</option>
+              <option value="grade">年级</option>
+              <option value="class">班级</option>
+            </select>
+            <select x-model="month" class="select select-sm select-bordered">
+              <option value="2026-07">2026-07</option>
+              <option value="2026-06">2026-06</option>
+              <option value="2026-05">2026-05</option>
+            </select>
+            <button class="btn btn-sm btn-ghost" @click="toggleFullscreen()">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
+              全屏
+            </button>
+          </div>
+        </div>
+
+        <!-- 核心指标 -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+          <div class="edu-card text-center">
+            <p class="text-3xl font-bold" x-text="coreMetrics.totalStudents.toLocaleString()"></p>
+            <p class="text-xs text-gray-500 mt-1">学生总数</p>
+          </div>
+          <div class="edu-card text-center">
+            <p class="text-3xl font-bold text-green-600"><span x-text="coreMetrics.activeRate"></span>%</p>
+            <p class="text-xs text-gray-500 mt-1">活跃率 <span class="text-green-500" x-text="coreMetrics.activeTrend === 'up' ? '↑' : '↓'"></span></p>
+          </div>
+          <div class="edu-card text-center">
+            <p class="text-3xl font-bold text-blue-600"><span x-text="coreMetrics.avgScore"></span></p>
+            <p class="text-xs text-gray-500 mt-1">平均成绩 <span class="text-green-500" x-text="coreMetrics.scoreTrend === 'up' ? '↑' : '↓'"></span></p>
+          </div>
+          <div class="edu-card text-center cursor-pointer" @click="window.location.href='/admin/warning'">
+            <p class="text-3xl font-bold text-red-500"><span x-text="coreMetrics.warningCount"></span></p>
+            <p class="text-xs text-gray-500 mt-1">预警人数 <span class="text-green-500" x-text="coreMetrics.warningTrend === 'down' ? '↓' : '↑'"></span></p>
+          </div>
+        </div>
+
+        <!-- 热力图 + 学科分布 -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          <!-- 学情热力图 -->
+          <div class="edu-card">
+            <h2 class="edu-card-title mb-4">学情热力图</h2>
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm">
+                <thead>
+                  <tr>
+                    <th class="text-left p-2 text-gray-500">年级 \\ 学科</th>
+                    <template x-for="s in heatmap.subjects" :key="s">
+                      <th class="p-2 text-center text-gray-500" x-text="s"></th>
+                    </template>
+                  </tr>
+                </thead>
+                <tbody>
+                  <template x-for="(row, gi) in heatmap.data" :key="gi">
+                    <tr>
+                      <td class="p-2 font-medium" x-text="heatmap.grades[gi]"></td>
+                      <template x-for="(val, si) in row" :key="si">
+                        <td class="p-2 text-center">
+                          <span class="inline-block w-12 h-8 rounded text-xs leading-8 text-white font-medium"
+                                :class="getHeatColor(val)" x-text="val + '%'"></span>
+                        </td>
+                      </template>
+                    </tr>
+                  </template>
+                </tbody>
+              </table>
+            </div>
+            <div class="flex items-center gap-2 mt-3 text-xs text-gray-500">
+              <span class="w-4 h-4 bg-green-400 rounded"></span>≥80%
+              <span class="w-4 h-4 bg-yellow-400 rounded ml-2"></span>60-80%
+              <span class="w-4 h-4 bg-red-400 rounded ml-2"></span>&lt;60%
+            </div>
+          </div>
+          <!-- 学科分布 -->
+          <div class="edu-card">
+            <h2 class="edu-card-title mb-4">学科分布</h2>
+            <div class="space-y-3">
+              <template x-for="s in subjectDist" :key="s.name">
+                <div class="flex items-center gap-3">
+                  <span class="w-12 text-sm" x-text="s.name"></span>
+                  <div class="flex-1 edu-progress h-6">
+                    <div class="edu-progress-bar h-full flex items-center justify-end pr-2 text-white text-xs"
+                         :class="s.color" :style="'width:'+s.pct+'%'" x-text="s.pct+'%'"></div>
+                  </div>
+                </div>
+              </template>
+            </div>
+          </div>
+        </div>
+
+        <!-- 趋势图 + 预警统计 -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <!-- 趋势图 -->
+          <div class="edu-card">
+            <h2 class="edu-card-title mb-4">月度趋势</h2>
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm">
+                <thead>
+                  <tr>
+                    <th class="text-left p-2 text-gray-500">月份</th>
+                    <th class="p-2 text-center text-gray-500">活跃率</th>
+                    <th class="p-2 text-center text-gray-500">平均成绩</th>
+                    <th class="p-2 text-center text-gray-500">学习时长(h)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <template x-for="t in monthlyTrend" :key="t.month">
+                    <tr class="border-t border-gray-100">
+                      <td class="p-2 font-medium" x-text="t.month"></td>
+                      <td class="p-2 text-center"><span class="text-green-600" x-text="t.active+'%'"></span></td>
+                      <td class="p-2 text-center"><span class="text-blue-600" x-text="t.score"></span></td>
+                      <td class="p-2 text-center" x-text="t.hours+'h'"></td>
+                    </tr>
+                  </template>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <!-- 预警统计 -->
+          <div class="edu-card">
+            <h2 class="edu-card-title mb-4">预警统计</h2>
+            <div class="space-y-4">
+              <template x-for="w in warningStats" :key="w.type">
+                <div>
+                  <div class="flex items-center justify-between text-sm mb-1">
+                    <span x-text="w.type"></span>
+                    <span class="font-bold" x-text="w.count + '人'"></span>
+                  </div>
+                  <div class="edu-progress"><div class="edu-progress-bar" :class="w.color" :style="'width:'+(w.count/25*100)+'%'"></div></div>
+                </div>
+              </template>
+            </div>
+            <a th:href="@{/admin/warning}" class="btn btn-outline btn-sm mt-4 w-full">查看预警详情 →</a>
+          </div>
+        </div>
+      </main>
+      <footer class="app-footer" th:replace="~{fragments/footer :: bottom}"></footer>
+    </div>
+  </div>
+  <script th:src="@{/js/app.js}"></script>
+  <script>
+    function loadDashboard() {
+      // TODO: API 加载大屏数据
+      // api.get('/api/admin/dashboard?scope=' + this.scope + '&month=' + this.month).then(...)
+    }
+  </script>
+</body>
+</html>

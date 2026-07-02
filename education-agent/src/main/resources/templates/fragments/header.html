@@ -1,0 +1,82 @@
+<!-- 顶部导航栏片段 -->
+<div th:fragment="topBar" class="flex items-center justify-between w-full">
+  <!-- 左侧: 菜单按钮 + 搜索 -->
+  <div class="flex items-center gap-4">
+    <!-- 移动端菜单按钮 -->
+    <button class="btn btn-ghost btn-sm lg:hidden" @click="$store.ui.toggleMobileSidebar()" aria-label="打开菜单">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+      </svg>
+    </button>
+    
+    <!-- 桌面端折叠按钮 -->
+    <button class="btn btn-ghost btn-sm hidden lg:flex" @click="$store.ui.toggleSidebar()" aria-label="折叠菜单">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h8m-8 6h16"/>
+      </svg>
+    </button>
+    
+    <!-- 搜索框 -->
+    <div class="hidden md:block">
+      <input type="search" placeholder="搜索知识点、题目..." 
+             class="input input-sm input-bordered w-64 rounded-full">
+    </div>
+  </div>
+  
+  <!-- 右侧: 学段切换 + 通知 + 用户菜单 -->
+  <div class="flex items-center gap-3">
+    <!-- 学段切换 -->
+    <div class="dropdown dropdown-end" x-data="{ open: false }">
+      <button class="btn btn-ghost btn-sm gap-2" @click="open = !open">
+        <span class="text-sm" x-text="$store.user.getStageName()"></span>
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+        </svg>
+      </button>
+      <ul class="dropdown-content menu bg-base-100 rounded-box shadow-lg w-40 z-50 mt-2" 
+          x-show="open" @click.away="open = false" x-transition>
+        <li><a @click="$store.user.switchStage('elementary'); $store.user.applyStage(); open = false">小学</a></li>
+        <li><a @click="$store.user.switchStage('middle'); $store.user.applyStage(); open = false">初中</a></li>
+        <li><a @click="$store.user.switchStage('high'); $store.user.applyStage(); open = false">高中</a></li>
+        <li><a @click="$store.user.switchStage('university'); $store.user.applyStage(); open = false">大学</a></li>
+        <li><a @click="$store.user.switchStage('vocational'); $store.user.applyStage(); open = false">职业培训</a></li>
+        <li><a @click="$store.user.switchStage('adult'); $store.user.applyStage(); open = false">成人学习</a></li>
+      </ul>
+    </div>
+    
+    <!-- 通知 -->
+    <div class="indicator">
+      <a th:href="@{/notifications}" class="btn btn-ghost btn-sm btn-circle">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+        </svg>
+      </a>
+      <span class="indicator-item badge badge-primary badge-xs" 
+            x-show="$store.notification.count > 0" 
+            x-text="$store.notification.count"></span>
+    </div>
+    
+    <!-- 用户菜单 -->
+    <div class="dropdown dropdown-end" x-data="{ open: false }">
+      <button class="btn btn-ghost btn-sm gap-2" @click="open = !open">
+        <div class="avatar placeholder">
+          <div class="bg-primary text-primary-content rounded-full w-8">
+            <span class="text-xs" x-text="$store.user.info?.name?.charAt(0) || 'U'"></span>
+          </div>
+        </div>
+        <span class="hidden md:inline text-sm" x-text="$store.user.info?.name || '用户'"></span>
+      </button>
+      <ul class="dropdown-content menu bg-base-100 rounded-box shadow-lg w-48 z-50 mt-2" 
+          x-show="open" @click.away="open = false" x-transition>
+        <li class="menu-title" x-show="$store.user.isLoggedIn">
+          <span x-text="$store.user.info?.name"></span>
+        </li>
+        <li><a th:href="@{/profile}">个人中心</a></li>
+        <li><a th:href="@{/gamification}">成就中心</a></li>
+        <li class="border-t border-base-200 mt-1 pt-1">
+          <a @click="$store.user.logout()">退出登录</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>

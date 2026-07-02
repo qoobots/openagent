@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org" th:attr="data-stage=${stage ?: 'middle'}">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>管控设置 | 教育培训智能体</title>
+  <meta name="robots" content="noindex, nofollow">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css">
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body class="bg-base-100" x-data x-init="$store.user.applyStage()">
+  <div class="app-layout">
+    <aside class="app-sidebar" :class="{ 'collapsed': $store.ui.sidebarCollapsed, 'mobile-open': $store.ui.mobileSidebarOpen }">
+      <div class="sidebar-logo"><svg width="32" height="32" viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="8" fill="currentColor" opacity="0.1"/><path d="M16 6L8 12v8l8 6 8-6v-8l-8-6z" stroke="currentColor" stroke-width="2" fill="none"/><circle cx="16" cy="16" r="3" fill="currentColor"/></svg><span>教育智能体</span></div>
+      <nav class="sidebar-menu" th:replace="~{fragments/sidebar :: menuItems}"></nav>
+    </aside>
+    <div class="app-main">
+      <header class="app-header" th:replace="~{fragments/header :: topBar}"></header>
+      <div class="fixed inset-0 bg-black/50 z-40 lg:hidden" x-show="$store.ui.mobileSidebarOpen" @click="$store.ui.mobileSidebarOpen = false"></div>
+      
+      <main class="app-content" x-data="{
+        children: [{ id: 1, name: '小明' }, { id: 2, name: '小红' }],
+        activeChild: 0,
+        settings: {
+          dailyLimit: 60,
+          lockPolicy: 'lock',
+          quietStart: '21:00',
+          quietEnd: '07:00',
+          weekendExtend: true,
+          weekendLimit: 90,
+          permissions: {
+            chat: true, practice: true, knowledgeMap: true,
+            wrongBook: true, learningPartner: false, gamification: true
+          },
+          notifications: {
+            dailyReport: true, warning: true, examReminder: true, achievement: false
+          },
+          pushMethod: 'sms_app'
+        },
+        saving: false,
+        get usedPercent() { return Math.round(35 / this.settings.dailyLimit * 100); }
+      }" x-init="$store.user.applyStage(); loadSettings()">
+        <div class="flex items-center justify-between mb-6">
+          <h1 class="text-2xl font-bold">⏰ 管控设置</h1>
+          <select x-model="activeChild" class="select select-sm select-bordered">
+            <template x-for="(child, idx) in children" :key="child.id">
+              <option :value="idx" x-text="child.name"></option>
+            </template>
+          </select>
+        </div>
+
+        <!-- 使用时长管控 -->
+        <div class="edu-card mb-6">
+          <h2 class="edu-card-title mb-4">🕐 使用时长管控</h2>
+          <div class="space-y-4">
+            <div class="flex items-center gap-4">
+              <label class="text-sm w-32">每日使用上限:</label>
+              <input type="number" x-model.number="settings.dailyLimit" min="10" max="300" class="input input-bordered input-sm w-24">
+              <span class="text-sm text-gray-500">分钟</span>
+            </div>
+            <div>
+              <div class="flex items-center justify-between text-sm mb-1">
+                <span>今日已用: 35 / <span x-text="settings.dailyLimit"></span> min</span>
+                <span x-text="usedPercent + '%'"></span>
+              </div>
+              <div class="edu-progress"><div class="edu-progress-bar" :style="'width:'+usedPercent+'%'"></div></div>
+            </div>
+            <div class="flex items-center gap-4">
+              <label class="text-sm w-32">到时策略:</label>
+              <div class="flex gap-4">
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input type="radio" x-model="settings.lockPolicy" value="lock" class="radio radio-sm radio-primary">
+                  <span class="text-sm">提醒后锁定</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input type="radio" x-model="settings.lockPolicy" value="remind" class="radio radio-sm radio-primary">
+                  <span class="text-sm">仅提醒不锁定</span>
+                </label>
+              </div>
+            </div>
+            <div class="flex items-center gap-4">
+              <label class="text-sm w-32">免打扰时段:</label>
+              <input type="time" x-model="settings.quietStart" class="input input-bordered input-sm w-28">
+              <span class="text-gray-400">-</span>
+              <input type="time" x-model="settings.quietEnd" class="input input-bordered input-sm w-28">
+            </div>
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" x-model="settings.weekendExtend" class="checkbox checkbox-sm checkbox-primary">
+              <span class="text-sm">周末延长至</span>
+              <input type="number" x-model.number="settings.weekendLimit" min="10" max="480" class="input input-bordered input-sm w-20" :disabled="!settings.weekendExtend">
+              <span class="text-sm text-gray-500">分钟</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- 功能权限 -->
+        <div class="edu-card mb-6">
+          <h2 class="edu-card-title mb-4">🎮 功能权限</h2>
+          <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" x-model="settings.permissions.chat" class="checkbox checkbox-sm checkbox-primary">
+              <span class="text-sm">AI 对话辅导</span>
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" x-model="settings.permissions.practice" class="checkbox checkbox-sm checkbox-primary">
+              <span class="text-sm">练习中心</span>
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" x-model="settings.permissions.knowledgeMap" class="checkbox checkbox-sm checkbox-primary">
+              <span class="text-sm">知识图谱</span>
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" x-model="settings.permissions.wrongBook" class="checkbox checkbox-sm checkbox-primary">
+              <span class="text-sm">错题本</span>
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" x-model="settings.permissions.learningPartner" class="checkbox checkbox-sm checkbox-primary">
+              <span class="text-sm">学习伙伴</span>
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" x-model="settings.permissions.gamification" class="checkbox checkbox-sm checkbox-primary">
+              <span class="text-sm">成就中心</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- 通知设置 -->
+        <div class="edu-card mb-6">
+          <h2 class="edu-card-title mb-4">🔔 通知设置</h2>
+          <div class="space-y-3">
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" x-model="settings.notifications.dailyReport" class="checkbox checkbox-sm checkbox-primary">
+              <span class="text-sm">每日学情报告推送</span>
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" x-model="settings.notifications.warning" class="checkbox checkbox-sm checkbox-primary">
+              <span class="text-sm">预警通知</span>
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" x-model="settings.notifications.examReminder" class="checkbox checkbox-sm checkbox-primary">
+              <span class="text-sm">考试前提醒</span>
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" x-model="settings.notifications.achievement" class="checkbox checkbox-sm checkbox-primary">
+              <span class="text-sm">成就达成通知</span>
+            </label>
+            <div class="flex items-center gap-4 pt-2">
+              <label class="text-sm w-20">推送方式:</label>
+              <select x-model="settings.pushMethod" class="select select-sm select-bordered">
+                <option value="sms_app">短信 + App内</option>
+                <option value="sms">仅短信</option>
+                <option value="app">仅App内</option>
+                <option value="wechat">微信推送</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- 操作按钮 -->
+        <div class="flex gap-3">
+          <button class="btn btn-primary" :class="{ 'loading': saving }" @click="saveSettings()">保存设置</button>
+          <button class="btn btn-ghost" @click="resetDefaults()">恢复默认</button>
+        </div>
+      </main>
+      <footer class="app-footer" th:replace="~{fragments/footer :: bottom}"></footer>
+    </div>
+  </div>
+  <script th:src="@{/js/app.js}"></script>
+  <script>
+    function loadSettings() {
+      // TODO: API 加载管控设置
+      // api.get('/api/parent/settings?childId=' + this.activeChild).then(...)
+    }
+    async function saveSettings() {
+      this.saving = true;
+      try {
+        // TODO: await api.put('/api/parent/settings', this.settings)
+        toast.success('设置已保存');
+      } catch (e) {
+        toast.error('保存失败: ' + e.message);
+      } finally {
+        this.saving = false;
+      }
+    }
+    function resetDefaults() {
+      this.settings.dailyLimit = 60;
+      this.settings.lockPolicy = 'lock';
+      this.settings.quietStart = '21:00';
+      this.settings.quietEnd = '07:00';
+      this.settings.weekendExtend = true;
+      this.settings.weekendLimit = 90;
+      toast.info('已恢复默认设置，请点击保存以生效');
+    }
+  </script>
+</body>
+</html>

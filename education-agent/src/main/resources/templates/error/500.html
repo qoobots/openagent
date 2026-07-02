@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org" data-stage="middle">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>500 - 服务器错误 | 教育培训智能体</title>
+  <meta name="robots" content="noindex, nofollow">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css">
+  <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body class="bg-base-200 min-h-screen flex items-center justify-center p-4">
+  <div class="text-center max-w-md">
+    <div class="text-8xl mb-6">⚙️</div>
+    <h1 class="text-4xl font-bold text-gray-800 mb-2">500</h1>
+    <p class="text-xl text-gray-600 mb-2">服务器错误</p>
+    <p class="text-sm text-gray-500 mb-8">抱歉，服务器遇到了问题，请稍后重试。如果问题持续存在，请联系技术支持。</p>
+    <div class="flex gap-3 justify-center">
+      <button class="btn btn-outline" onclick="location.reload()">刷新页面</button>
+      <a th:href="@{/}" class="btn btn-primary">返回首页</a>
+    </div>
+    <!-- 状态指示 -->
+    <div class="mt-8 p-4 bg-base-100 rounded-lg text-left">
+      <p class="text-xs text-gray-400 mb-2">系统状态:</p>
+      <div class="flex items-center gap-2 text-sm">
+        <span class="w-2 h-2 rounded-full bg-yellow-400 animate-pulse"></span>
+        <span class="text-gray-600">服务正在恢复中...</span>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

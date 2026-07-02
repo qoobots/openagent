@@ -1,0 +1,16 @@
+<!-- 面包屑导航片段 -->
+<nav th:fragment="nav" aria-label="breadcrumb">
+  <ol class="breadcrumb" itemscope itemtype="https://schema.org/BreadcrumbList">
+    <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+      <a th:href="@{/}" itemprop="item"><span itemprop="name">首页</span></a>
+      <span class="separator">/</span>
+    </li>
+    <li th:each="crumb, iter : ${breadcrumbs}" itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+      <a th:if="${!iter.last}" th:href="${crumb.url}" itemprop="item">
+        <span itemprop="name" th:text="${crumb.name}">当前页</span>
+      </a>
+      <span th:if="${iter.last}" class="current" itemprop="name" th:text="${crumb.name}">当前页</span>
+      <span th:if="${!iter.last}" class="separator">/</span>
+    </li>
+  </ol>
+</nav>

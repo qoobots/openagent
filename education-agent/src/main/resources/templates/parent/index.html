@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org" th:attr="data-stage=${stage ?: 'middle'}">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>家长首页 | 教育培训智能体</title>
+  <meta name="robots" content="noindex, nofollow">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css">
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body class="bg-base-100" x-data x-init="$store.user.applyStage()">
+  <div class="app-layout">
+    <aside class="app-sidebar" :class="{ 'collapsed': $store.ui.sidebarCollapsed, 'mobile-open': $store.ui.mobileSidebarOpen }">
+      <div class="sidebar-logo"><svg width="32" height="32" viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="8" fill="currentColor" opacity="0.1"/><path d="M16 6L8 12v8l8 6 8-6v-8l-8-6z" stroke="currentColor" stroke-width="2" fill="none"/><circle cx="16" cy="16" r="3" fill="currentColor"/></svg><span>教育智能体</span></div>
+      <nav class="sidebar-menu" th:replace="~{fragments/sidebar :: menuItems}"></nav>
+    </aside>
+    <div class="app-main">
+      <header class="app-header" th:replace="~{fragments/header :: topBar}"></header>
+      <div class="fixed inset-0 bg-black/50 z-40 lg:hidden" x-show="$store.ui.mobileSidebarOpen" @click="$store.ui.mobileSidebarOpen = false"></div>
+      
+      <main class="app-content" x-data="{
+        children: [
+          { id: 1, name: '小明', stage: '小学', avatar: '👦' },
+          { id: 2, name: '小红', stage: '初中', avatar: '👧' }
+        ],
+        activeChild: 0,
+        today: { duration: 45, limit: 60, tasks: [
+          { name: '数学练习 10题', detail: '正确率 80%', done: true },
+          { name: '英语听力 15min', detail: '已完成', done: true },
+          { name: '语文阅读', detail: '未完成', done: false }
+        ], rating: 4 },
+        weekTrend: [
+          { day: '周一', duration: 38, accuracy: 72 },
+          { day: '周二', duration: 42, accuracy: 75 },
+          { day: '周三', duration: 50, accuracy: 80 },
+          { day: '周四', duration: 45, accuracy: 78 },
+          { day: '周五', duration: 40, accuracy: 76 },
+          { day: '周六', duration: 55, accuracy: 82 },
+          { day: '周日', duration: 30, accuracy: 70 }
+        ],
+        warnings: [
+          { subject: '数学-分数运算', desc: '连续3天错误率>50%', level: 'danger' }
+        ],
+        get progress() { return Math.round(this.today.duration / this.today.limit * 100); },
+        get avgDuration() { return Math.round(this.weekTrend.reduce((s,d)=>s+d.duration,0)/this.weekTrend.length); },
+        get avgAccuracy() { return Math.round(this.weekTrend.reduce((s,d)=>s+d.accuracy,0)/this.weekTrend.length); }
+      }" x-init="$store.user.applyStage(); loadParentData()">
+        <h1 class="text-2xl font-bold mb-6">🏠 家长中心</h1>
+        
+        <!-- 孩子切换 -->
+        <div class="edu-card mb-6">
+          <div class="flex items-center gap-3 flex-wrap">
+            <template x-for="(child, idx) in children" :key="child.id">
+              <button @click="activeChild = idx" 
+                      class="flex items-center gap-2 px-4 py-2 rounded-full transition-colors"
+                      :class="activeChild === idx ? 'bg-primary text-white' : 'bg-base-200 hover:bg-base-300'">
+                <span x-text="child.avatar"></span>
+                <span x-text="child.name"></span>
+                <span class="text-xs opacity-70" x-text="'('+child.stage+')'"></span>
+              </button>
+            </template>
+            <button class="flex items-center gap-2 px-4 py-2 rounded-full border-2 border-dashed border-gray-300 hover:border-primary text-gray-400 hover:text-primary transition-colors">
+              <span>+</span><span>绑定孩子</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 今日学情 -->
+        <div class="edu-card mb-6">
+          <h2 class="edu-card-title mb-4">📊 今日学情 (<span x-text="children[activeChild]?.name"></span>)</h2>
+          <!-- 学习时长 -->
+          <div class="mb-4">
+            <div class="flex items-center justify-between text-sm mb-1">
+              <span>学习时长: <span class="font-bold" x-text="today.duration+'min'"></span> / <span x-text="today.limit+'min 上限'"></span></span>
+              <span class="font-medium" x-text="progress+'%'"></span>
+            </div>
+            <div class="edu-progress"><div class="edu-progress-bar" :style="'width:'+progress+'%'" :class="{ 'bg-warning': progress > 80, 'bg-error': progress >= 100 }"></div></div>
+          </div>
+          <!-- 今日完成 -->
+          <div class="mb-4">
+            <p class="text-sm font-medium mb-2">今日完成:</p>
+            <div class="space-y-2">
+              <template x-for="task in today.tasks" :key="task.name">
+                <div class="flex items-center gap-2 text-sm">
+                  <span x-text="task.done ? '✅' : '⬜'"></span>
+                  <span :class="{ 'line-through text-gray-400': task.done }" x-text="task.name"></span>
+                  <span class="text-xs text-gray-400" x-text="'('+task.detail+')'"></span>
+                </div>
+              </template>
+            </div>
+          </div>
+          <!-- 今日表现 -->
+          <div class="flex items-center gap-1">
+            <span class="text-sm">今日表现:</span>
+            <template x-for="i in 5">
+              <span x-text="i <= today.rating ? '⭐' : '☆'"></span>
+            </template>
+          </div>
+        </div>
+
+        <!-- 本周趋势 -->
+        <div class="edu-card mb-6">
+          <h2 class="edu-card-title mb-4">📈 本周趋势</h2>
+          <div class="grid grid-cols-7 gap-2 mb-4">
+            <template x-for="d in weekTrend" :key="d.day">
+              <div class="text-center">
+                <div class="text-xs text-gray-500 mb-1" x-text="d.day"></div>
+                <div class="bg-base-200 rounded-full mx-auto" style="width:24px;height:60px;position:relative;">
+                  <div class="bg-primary rounded-full absolute bottom-0 w-full" :style="'height:'+(d.duration/60*100)+'%'"></div>
+                </div>
+                <div class="text-xs mt-1" x-text="d.duration+'min'"></div>
+              </div>
+            </template>
+          </div>
+          <div class="flex gap-6 text-sm text-gray-600">
+            <span>平均时长: <strong x-text="avgDuration+'min'"></strong></span>
+            <span>平均正确率: <strong x-text="avgAccuracy+'%'"></strong></span>
+          </div>
+        </div>
+
+        <!-- 薄弱提醒 -->
+        <div class="edu-card">
+          <h2 class="edu-card-title mb-4">⚠️ 薄弱提醒</h2>
+          <template x-for="w in warnings" :key="w.subject">
+            <div class="flex items-start gap-3 p-3 bg-red-50 rounded-lg mb-3">
+              <span class="text-xl">⚠️</span>
+              <div class="flex-1">
+                <p class="font-medium text-red-700" x-text="w.subject"></p>
+                <p class="text-sm text-red-600" x-text="w.desc"></p>
+              </div>
+              <div class="flex gap-2">
+                <a th:href="@{/wrong-book}" class="btn btn-outline btn-xs">查看详情</a>
+                <a th:href="@{/chat}" class="btn btn-outline btn-xs">联系老师</a>
+              </div>
+            </div>
+          </template>
+        </div>
+      </main>
+      <footer class="app-footer" th:replace="~{fragments/footer :: bottom}"></footer>
+    </div>
+  </div>
+  <script th:src="@{/js/app.js}"></script>
+  <script>
+    function loadParentData() {
+      // TODO: API 加载家长数据
+      // api.get('/api/parent/children').then(...)
+      // api.get('/api/parent/today-report?childId=' + this.activeChild).then(...)
+    }
+  </script>
+</body>
+</html>

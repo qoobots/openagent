@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org" th:attr="data-stage=${stage ?: 'high'}">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>学生预警 | 教育培训智能体</title>
+  <meta name="robots" content="noindex, nofollow">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css">
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body class="bg-base-100" x-data x-init="$store.user.applyStage()">
+  <div class="app-layout">
+    <aside class="app-sidebar" :class="{ 'collapsed': $store.ui.sidebarCollapsed, 'mobile-open': $store.ui.mobileSidebarOpen }">
+      <div class="sidebar-logo"><svg width="32" height="32" viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="8" fill="currentColor" opacity="0.1"/><path d="M16 6L8 12v8l8 6 8-6v-8l-8-6z" stroke="currentColor" stroke-width="2" fill="none"/><circle cx="16" cy="16" r="3" fill="currentColor"/></svg><span>教育智能体</span></div>
+      <nav class="sidebar-menu" th:replace="~{fragments/sidebar :: menuItems}"></nav>
+    </aside>
+    <div class="app-main">
+      <header class="app-header" th:replace="~{fragments/header :: topBar}"></header>
+      <div class="fixed inset-0 bg-black/50 z-40 lg:hidden" x-show="$store.ui.mobileSidebarOpen" @click="$store.ui.mobileSidebarOpen = false"></div>
+      
+      <main class="app-content" x-data="{
+        scope: 'all',
+        filters: { level: '', grade: '', cls: '', type: '' },
+        stats: { high: 8, medium: 22, low: 15 },
+        warningList: [
+          { id: 1, name: '张三', cls: '高三(1)班', level: 'high', reason: '连续3次考试下滑', scores: [95,82,71], weakCount: 5, hoursChange: '-40%' },
+          { id: 2, name: '李四', cls: '高二(3)班', level: 'medium', reason: '数学成绩波动大', scores: [88,65,79], weakCount: 3, hoursChange: '-15%' },
+          { id: 3, name: '王五', cls: '高一(2)班', level: 'medium', reason: '出勤率低于70%', scores: [72,70,68], weakCount: 2, hoursChange: '-20%' },
+          { id: 4, name: '赵六', cls: '高三(2)班', level: 'high', reason: '多科成绩持续下滑', scores: [80,72,63], weakCount: 6, hoursChange: '-50%' },
+          { id: 5, name: '孙七', cls: '高二(1)班', level: 'low', reason: '学习习惯评分低', scores: [75,74,73], weakCount: 1, hoursChange: '-5%' }
+        ],
+        selectedStudent: null,
+        drawerOpen: false,
+        get filteredList() {
+          return this.warningList.filter(w => {
+            if (this.filters.level && w.level !== this.filters.level) return false;
+            if (this.filters.grade && !w.cls.includes(this.filters.grade)) return false;
+            if (this.filters.cls && !w.cls.includes(this.filters.cls)) return false;
+            return true;
+          });
+        },
+        getLevelLabel(level) {
+          return { high: '🔴 高危', medium: '🟡 中等', low: '🟢 关注' }[level] || level;
+        },
+        getLevelClass(level) {
+          return { high: 'text-red-600 bg-red-50', medium: 'text-yellow-600 bg-yellow-50', low: 'text-green-600 bg-green-50' }[level] || '';
+        },
+        openDetail(student) {
+          this.selectedStudent = student;
+          this.drawerOpen = true;
+        }
+      }" x-init="$store.user.applyStage(); loadWarnings()">
+        <div class="flex items-center justify-between mb-6 flex-wrap gap-3">
+          <h1 class="text-2xl font-bold">⚠️ 学生预警</h1>
+          <select x-model="scope" class="select select-sm select-bordered">
+            <option value="all">全校</option>
+            <option value="grade">年级</option>
+            <option value="class">班级</option>
+          </select>
+        </div>
+
+        <!-- 预警统计 -->
+        <div class="grid grid-cols-3 gap-4 mb-6">
+          <div class="edu-card text-center border-l-4 border-red-500">
+            <p class="text-2xl font-bold text-red-600" x-text="stats.high + '人'"></p>
+            <p class="text-xs text-gray-500">🔴 高危</p>
+          </div>
+          <div class="edu-card text-center border-l-4 border-yellow-500">
+            <p class="text-2xl font-bold text-yellow-600" x-text="stats.medium + '人'"></p>
+            <p class="text-xs text-gray-500">🟡 中等</p>
+          </div>
+          <div class="edu-card text-center border-l-4 border-green-500">
+            <p class="text-2xl font-bold text-green-600" x-text="stats.low + '人'"></p>
+            <p class="text-xs text-gray-500">🟢 关注</p>
+          </div>
+        </div>
+
+        <!-- 筛选 -->
+        <div class="edu-card mb-6">
+          <div class="flex flex-wrap gap-3">
+            <select x-model="filters.level" class="select select-sm select-bordered">
+              <option value="">预警级别</option>
+              <option value="high">高危</option>
+              <option value="medium">中等</option>
+              <option value="low">关注</option>
+            </select>
+            <select x-model="filters.grade" class="select select-sm select-bordered">
+              <option value="">年级</option>
+              <option value="高一">高一</option>
+              <option value="高二">高二</option>
+              <option value="高三">高三</option>
+            </select>
+            <select x-model="filters.cls" class="select select-sm select-bordered">
+              <option value="">班级</option>
+              <option value="(1)班">(1)班</option>
+              <option value="(2)班">(2)班</option>
+              <option value="(3)班">(3)班</option>
+            </select>
+            <button class="btn btn-sm btn-ghost" @click="filters = { level: '', grade: '', cls: '', type: '' }">重置</button>
+          </div>
+        </div>
+
+        <!-- 预警列表 -->
+        <div class="edu-card">
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead>
+                <tr class="border-b border-gray-200">
+                  <th class="text-left p-3">姓名</th>
+                  <th class="text-left p-3">班级</th>
+                  <th class="text-left p-3">预警级别</th>
+                  <th class="text-left p-3">预警原因</th>
+                  <th class="text-left p-3">操作</th>
+                </tr>
+              </thead>
+              <tbody>
+                <template x-for="w in filteredList" :key="w.id">
+                  <tr class="border-b border-gray-100 hover:bg-base-200/50">
+                    <td class="p-3 font-medium" x-text="w.name"></td>
+                    <td class="p-3" x-text="w.cls"></td>
+                    <td class="p-3">
+                      <span class="px-2 py-1 rounded-full text-xs font-medium" :class="getLevelClass(w.level)" x-html="getLevelLabel(w.level)"></span>
+                    </td>
+                    <td class="p-3 text-gray-600" x-text="w.reason"></td>
+                    <td class="p-3">
+                      <button class="btn btn-outline btn-xs" @click="openDetail(w)">详情</button>
+                    </td>
+                  </tr>
+                </template>
+              </tbody>
+            </table>
+          </div>
+          <div class="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
+            <div class="flex gap-2">
+              <button class="btn btn-outline btn-sm" @click="exportExcel()">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V16a2 2 0 01-2 2z"/></svg>
+                导出 Excel
+              </button>
+              <button class="btn btn-outline btn-sm" @click="notifyTeachers()">批量通知班主任</button>
+            </div>
+            <div class="text-sm text-gray-500">共 <span x-text="filteredList.length"></span> 条记录</div>
+          </div>
+        </div>
+
+        <!-- 学生详情 Drawer -->
+        <div class="fixed inset-0 z-50" x-show="drawerOpen" x-transition>
+          <div class="absolute inset-0 bg-black/50" @click="drawerOpen = false"></div>
+          <div class="absolute right-0 top-0 h-full w-full max-w-md bg-base-100 shadow-xl overflow-y-auto" 
+               x-transition:enter="transition ease-out duration-300"
+               x-transition:enter-start="translate-x-full"
+               x-transition:enter-end="translate-x-0"
+               x-transition:leave="transition ease-in duration-200"
+               x-transition:leave-start="translate-x-0"
+               x-transition:leave-end="translate-x-full">
+            <template x-if="selectedStudent">
+              <div class="p-6">
+                <div class="flex items-center justify-between mb-6">
+                  <h2 class="text-lg font-bold" x-text="selectedStudent.name + '  ' + selectedStudent.cls"></h2>
+                  <button class="btn btn-ghost btn-sm btn-circle" @click="drawerOpen = false">✕</button>
+                </div>
+                <div class="mb-4">
+                  <span class="text-sm text-gray-500">预警级别:</span>
+                  <span class="ml-2 px-2 py-1 rounded-full text-xs font-medium" :class="getLevelClass(selectedStudent.level)" x-html="getLevelLabel(selectedStudent.level)"></span>
+                </div>
+                
+                <!-- 预警原因 -->
+                <div class="mb-6">
+                  <h3 class="text-sm font-medium text-gray-500 mb-3">预警原因:</h3>
+                  <ul class="space-y-2 text-sm">
+                    <li class="flex items-start gap-2">
+                      <span class="text-red-500 mt-0.5">·</span>
+                      <span>最近3次考试成绩持续下滑 (<span x-text="selectedStudent.scores.join('→')"></span>)</span>
+                    </li>
+                    <li class="flex items-start gap-2">
+                      <span class="text-red-500 mt-0.5">·</span>
+                      <span>数学薄弱知识点增加至<span x-text="selectedStudent.weakCount"></span>个</span>
+                    </li>
+                    <li class="flex items-start gap-2">
+                      <span class="text-red-500 mt-0.5">·</span>
+                      <span>最近一周学习时长下降<span x-text="selectedStudent.hoursChange"></span></span>
+                    </li>
+                  </ul>
+                </div>
+
+                <!-- 建议措施 -->
+                <div class="mb-6">
+                  <h3 class="text-sm font-medium text-gray-500 mb-3">建议措施:</h3>
+                  <ul class="space-y-2 text-sm">
+                    <li class="flex items-start gap-2"><span class="text-blue-500 mt-0.5">·</span><span>安排班主任一对一谈话</span></li>
+                    <li class="flex items-start gap-2"><span class="text-blue-500 mt-0.5">·</span><span>制定专项补习计划</span></li>
+                    <li class="flex items-start gap-2"><span class="text-blue-500 mt-0.5">·</span><span>通知家长关注</span></li>
+                  </ul>
+                </div>
+
+                <!-- 操作按钮 -->
+                <div class="space-y-2">
+                  <button class="btn btn-primary btn-sm w-full" @click="createIntervention()">制定干预计划</button>
+                  <button class="btn btn-outline btn-sm w-full" @click="notifyTeacher()">通知班主任</button>
+                  <button class="btn btn-outline btn-sm w-full" @click="notifyParent()">通知家长</button>
+                </div>
+              </div>
+            </template>
+          </div>
+        </div>
+      </main>
+      <footer class="app-footer" th:replace="~{fragments/footer :: bottom}"></footer>
+    </div>
+  </div>
+  <script th:src="@{/js/app.js}"></script>
+  <script>
+    function loadWarnings() {
+      // TODO: API 加载预警数据
+      // api.get('/api/admin/warnings?scope=' + this.scope).then(...)
+    }
+    function exportExcel() { toast.info('导出功能开发中'); }
+    function notifyTeachers() { toast.info('批量通知功能开发中'); }
+    function createIntervention() { toast.info('干预计划功能开发中'); }
+    function notifyTeacher() { toast.info('通知班主任功能开发中'); }
+    function notifyParent() { toast.info('通知家长功能开发中'); }
+  </script>
+</body>
+</html>

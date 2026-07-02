@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org" th:attr="data-stage=${stage ?: 'middle'}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>知识图谱 | 教育培训智能体</title>
+  <meta name="robots" content="noindex, nofollow">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css">
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body class="bg-base-100" x-data x-init="$store.user.applyStage()">
+  <div class="app-layout">
+    <aside class="app-sidebar" :class="{ 'collapsed': $store.ui.sidebarCollapsed, 'mobile-open': $store.ui.mobileSidebarOpen }">
+      <div class="sidebar-logo"><svg width="32" height="32" viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="8" fill="currentColor" opacity="0.1"/><path d="M16 6L8 12v8l8 6 8-6v-8l-8-6z" stroke="currentColor" stroke-width="2" fill="none"/><circle cx="16" cy="16" r="3" fill="currentColor"/></svg><span>教育智能体</span></div>
+      <nav class="sidebar-menu" th:replace="~{fragments/sidebar :: menuItems}"></nav>
+    </aside>
+    <div class="app-main">
+      <header class="app-header" th:replace="~{fragments/header :: topBar}"></header>
+      <div class="fixed inset-0 bg-black/50 z-40 lg:hidden" x-show="$store.ui.mobileSidebarOpen" @click="$store.ui.mobileSidebarOpen = false"></div>
+      
+      <main class="app-content" x-data="{
+        subject: 'math',
+        nodes: [
+          { id: 1, name: '二次函数', mastery: 80, status: 'learning', x: 50, y: 30 },
+          { id: 2, name: '顶点式', mastery: 65, status: 'learning', x: 35, y: 50 },
+          { id: 3, name: '函数单调性', mastery: 45, status: 'weak', x: 65, y: 50 },
+          { id: 4, name: '一次函数', mastery: 95, status: 'mastered', x: 25, y: 70 },
+          { id: 5, name: '不等式', mastery: 88, status: 'mastered', x: 50, y: 70 },
+          { id: 6, name: '三角函数', mastery: 30, status: 'weak', x: 75, y: 70 },
+          { id: 7, name: '诱导公式', mastery: 20, status: 'weak', x: 70, y: 85 },
+          { id: 8, name: '正弦余弦', mastery: 25, status: 'unlearned', x: 85, y: 85 }
+        ],
+        selectedNode: null,
+        
+        getNodeColor(node) {
+          if (node.status === 'mastered') return '#10B981';
+          if (node.status === 'learning') return '#3B82F6';
+          if (node.status === 'weak') return '#EF4444';
+          return '#9CA3AF';
+        },
+        
+        selectNode(node) { this.selectedNode = node; }
+      }">
+        
+        <div class="flex items-center justify-between mb-6">
+          <h1 class="text-2xl font-bold">🗺️ 知识图谱</h1>
+          <select x-model="subject" class="edu-select">
+            <option value="math">高中数学</option>
+            <option value="physics">高中物理</option>
+            <option value="chemistry">高中化学</option>
+          </select>
+        </div>
+        
+        <!-- 图谱可视化 -->
+        <div class="edu-card mb-6">
+          <div class="relative h-96 bg-gray-50 rounded-lg overflow-hidden">
+            <!-- 连线 (SVG) -->
+            <svg class="absolute inset-0 w-full h-full" style="z-index:1">
+              <line x1="50%" y1="30%" x2="35%" y2="50%" stroke="#d1d5db" stroke-width="2"/>
+              <line x1="50%" y1="30%" x2="65%" y2="50%" stroke="#d1d5db" stroke-width="2"/>
+              <line x1="35%" y1="50%" x2="25%" y2="70%" stroke="#d1d5db" stroke-width="2"/>
+              <line x1="35%" y1="50%" x2="50%" y2="70%" stroke="#d1d5db" stroke-width="2"/>
+              <line x1="65%" y1="50%" x2="50%" y2="70%" stroke="#d1d5db" stroke-width="2"/>
+              <line x1="65%" y1="50%" x2="75%" y2="70%" stroke="#d1d5db" stroke-width="2"/>
+              <line x1="75%" y1="70%" x2="70%" y2="85%" stroke="#d1d5db" stroke-width="2"/>
+              <line x1="75%" y1="70%" x2="85%" y2="85%" stroke="#d1d5db" stroke-width="2"/>
+            </svg>
+            <!-- 节点 -->
+            <template x-for="node in nodes" :key="node.id">
+              <button class="absolute transform -translate-x-1/2 -translate-y-1/2 px-4 py-2 rounded-full text-sm font-medium text-white shadow-md transition-all hover:scale-110 cursor-pointer"
+                      :style="'left:'+node.x+'%; top:'+node.y+'%; background:'+getNodeColor(node)+' z-index:2'"
+                      @click="selectNode(node)" x-text="node.name"></button>
+            </template>
+          </div>
+          <!-- 图例 -->
+          <div class="flex flex-wrap gap-4 mt-4 justify-center">
+            <span class="flex items-center gap-1 text-sm"><span class="w-3 h-3 rounded-full bg-green-500"></span> 已掌握</span>
+            <span class="flex items-center gap-1 text-sm"><span class="w-3 h-3 rounded-full bg-blue-500"></span> 学习中</span>
+            <span class="flex items-center gap-1 text-sm"><span class="w-3 h-3 rounded-full bg-gray-400"></span> 未学习</span>
+            <span class="flex items-center gap-1 text-sm"><span class="w-3 h-3 rounded-full bg-red-500"></span> 薄弱</span>
+          </div>
+        </div>
+        
+        <!-- 节点详情 -->
+        <div x-show="selectedNode" class="edu-card" x-transition>
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-lg font-bold" x-text="'📖 ' + selectedNode?.name"></h2>
+            <button class="btn btn-ghost btn-sm btn-circle" @click="selectedNode = null">✕</button>
+          </div>
+          <div class="mb-4">
+            <p class="text-sm text-gray-500 mb-1">掌握度</p>
+            <div class="edu-progress">
+              <div class="edu-progress-bar" :style="'width:'+(selectedNode?.mastery || 0)+'%'"
+                   :class="{ 'bg-green-500': selectedNode?.mastery >= 80, 'bg-yellow-500': selectedNode?.mastery >= 50 && selectedNode?.mastery < 80, 'bg-red-500': selectedNode?.mastery < 50 }"></div>
+            </div>
+            <p class="text-right text-sm font-medium mt-1" x-text="(selectedNode?.mastery || 0) + '%'"></p>
+          </div>
+          <div class="flex gap-3">
+            <a :href="'/education-agent/explain?id=' + (selectedNode?.id || '')" class="btn-primary btn-sm">去讲解</a>
+            <a :href="'/education-agent/practice?knowledgeId=' + (selectedNode?.id || '')" class="btn-outline btn-sm">去练习</a>
+          </div>
+        </div>
+        
+      </main>
+      <footer class="app-footer" th:replace="~{fragments/footer :: bottom}"></footer>
+    </div>
+  </div>
+  <script th:src="@{/js/app.js}"></script>
+</body>
+</html>
