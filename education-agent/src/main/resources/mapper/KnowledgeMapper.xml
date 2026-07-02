@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qoobot.agent.education_agent.mapper.KnowledgeMapper">
+
+    <resultMap id="KnowledgeMap" type="com.qoobot.agent.education_agent.entity.Knowledge">
+        <id property="id" column="id"/>
+        <result property="courseId" column="course_id"/>
+        <result property="subject" column="subject"/>
+        <result property="title" column="title"/>
+        <result property="content" column="content"/>
+        <result property="educationStage" column="education_stage"/>
+        <result property="difficulty" column="difficulty"/>
+        <result property="sortOrder" column="sort_order"/>
+        <result property="status" column="status"/>
+        <result property="source" column="source"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="deleted" column="deleted"/>
+    </resultMap>
+
+    <resultMap id="MatchMap" type="com.qoobot.agent.education_agent.vo.KnowledgeMatchVO">
+        <id property="id" column="id"/>
+        <result property="subject" column="subject"/>
+        <result property="title" column="title"/>
+        <result property="content" column="content"/>
+        <result property="educationStage" column="education_stage"/>
+        <result property="difficulty" column="difficulty"/>
+        <result property="score" column="score"/>
+    </resultMap>
+
+    <!-- pgvector 余弦相似度 TopK 检索 -->
+    <select id="searchByVector" resultMap="MatchMap">
+        SELECT id,
+               subject,
+               title,
+               content,
+               education_stage,
+               difficulty,
+               1 - (embedding &lt;=&gt; CAST(#{embedding} AS vector)) AS score
+        FROM edu_knowledge
+        WHERE deleted = 0
+          AND status = 1
+          AND education_stage = #{stage}
+          <if test="subject != null and subject != ''">
+              AND subject = #{subject}
+          </if>
+        ORDER BY embedding &lt;=&gt; CAST(#{embedding} AS vector)
+        LIMIT #{topK}
+    </select>
+
+    <!-- 写入 pgvector 字段 -->
+    <update id="updateVector">
+        UPDATE edu_knowledge
+        SET embedding = CAST(#{embedding} AS vector),
+            update_time = CURRENT_TIMESTAMP
+        WHERE id = #{id}
+          AND deleted = 0
+    </update>
+
+</mapper>

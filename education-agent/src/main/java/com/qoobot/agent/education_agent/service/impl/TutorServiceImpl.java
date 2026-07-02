@@ -3,10 +3,13 @@ package com.qoobot.agent.education_agent.service.impl;
 import com.qoobot.agent.education_agent.common.BusinessException;
 import com.qoobot.agent.education_agent.common.ErrorCode;
 import com.qoobot.agent.education_agent.common.RedisKeys;
+import com.qoobot.agent.education_agent.dto.KnowledgeSearchRequest;
 import com.qoobot.agent.education_agent.service.ContentSafetyService;
+import com.qoobot.agent.education_agent.service.RAGService;
 import com.qoobot.agent.education_agent.service.TutorService;
 import com.qoobot.agent.education_agent.util.RedisUtil;
 import com.qoobot.agent.education_agent.util.StageUtil;
+import com.qoobot.agent.education_agent.vo.KnowledgeMatchVO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
@@ -42,6 +45,7 @@ public class TutorServiceImpl implements TutorService {
     private final ContentSafetyService contentSafetyService;
     private final StageUtil stageUtil;
     private final RedisUtil redisUtil;
+    private final RAGService ragService;
 
     @Override
     public String chat(Long userId, String stage, String sessionId, String message) {
@@ -63,6 +67,10 @@ public class TutorServiceImpl implements TutorService {
         }
         // 5. 构建 Prompt
         String systemPrompt = buildSystemPrompt(stage);
+        String ragContext = buildRagContext(stage, message);
+        if (ragContext != null && !ragContext.isEmpty()) {
+            systemPrompt = systemPrompt + "\n\n" + ragContext;
+        }
         List<Message> historyMessages = loadHistory(sessionId);
         List<Message> promptMessages = new ArrayList<>();
         promptMessages.add(new SystemMessage(systemPrompt));
@@ -115,6 +123,10 @@ public class TutorServiceImpl implements TutorService {
         final String sid = sessionId;
 
         String systemPrompt = buildSystemPrompt(stage);
+        String ragContext = buildRagContext(stage, message);
+        if (ragContext != null && !ragContext.isEmpty()) {
+            systemPrompt = systemPrompt + "\n\n" + ragContext;
+        }
         List<Message> historyMessages = loadHistory(sessionId);
         List<Message> promptMessages = new ArrayList<>();
         promptMessages.add(new SystemMessage(systemPrompt));
@@ -214,5 +226,27 @@ public class TutorServiceImpl implements TutorService {
 
     private String truncate(String s, int maxLen) {
         return s == null ? "" : s.length() <= maxLen ? s : s.substring(0, maxLen);
+    }
+
+    /**
+     * 调用 RAG 服务检索相关知识并拼装为 Prompt 片段。
+     * <p>检索失败/无结果时静默降级，不影响主链路。
+     */
+    private String buildRagContext(String stage, String query) {
+        try {
+            KnowledgeSearchRequest request = new KnowledgeSearchRequest();
+            request.setQuery(query);
+            request.setEducationStage(stage);
+            request.setTopK(3);
+            request.setThreshold(0.65);
+            List<KnowledgeMatchVO> matches = ragService.search(request);
+            if (matches.isEmpty()) {
+                return null;
+            }
+            return ragService.buildContext(matches);
+        } catch (Exception e) {
+            log.warn("RAG 检索失败，已降级: {}", e.getMessage());
+            return null;
+        }
     }
 }
