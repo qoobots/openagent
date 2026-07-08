@@ -172,7 +172,7 @@ openagent/
 ### 2. 克隆项目
 
 ```bash
-git clone https://github.com/qoobot-com/openagent.git
+git clone https://github.com/qoobots/openagent.git
 cd openagent
 ```
 
@@ -481,8 +481,8 @@ logging:
 
 ## 📧 联系方式
 
-- 项目主页: https://github.com/qoobot-com/openagent
-- 问题反馈: https://github.com/qoobot-com/openagent/issues
+- 项目主页: https://github.com/qoobots/openagent
+- 问题反馈: https://github.com/qoobots/openagent/issues
 
 ---
 

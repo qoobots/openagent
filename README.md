@@ -172,7 +172,7 @@ openagent/
 ### 2. Clone Project
 
 ```bash
-git clone https://github.com/qoobot-com/openagent.git
+git clone https://github.com/qoobots/openagent.git
 cd openagent
 ```
 
@@ -481,8 +481,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📧 Contact
 
-- Project Homepage: https://github.com/qoobot-com/openagent
-- Issue Tracker: https://github.com/qoobot-com/openagent/issues
+- Project Homepage: https://github.com/qoobots/openagent
+- Issue Tracker: https://github.com/qoobots/openagent/issues
 
 ---
 

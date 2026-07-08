@@ -21,7 +21,7 @@
 
     <name>openagent</name>
     <description>openagent</description>
-    <url>https://github.com/qoobot-com/openagent</url>
+    <url>https://github.com/qoobots/openagent</url>
 
     <!-- 模块声明 -->
     <modules>
@@ -704,9 +704,9 @@
 
     <!-- SCM 信息 -->
     <scm>
-        <connection>scm:git:git://github.com/qoobot-com/openagent.git</connection>
+        <connection>scm:git:git://github.com/qoobots/openagent.git</connection>
         <developerConnection>scm:git:ssh://github.com:qoobot/openagent.git</developerConnection>
-        <url>https://github.com/qoobot-com/openagent/tree/main</url>
+        <url>https://github.com/qoobots/openagent/tree/main</url>
         <tag>HEAD</tag>
     </scm>
 
@@ -731,13 +731,13 @@
     <!-- 问题追踪 -->
     <issueManagement>
         <system>GitHub Issues</system>
-        <url>https://github.com/qoobot-com/openagent/issues</url>
+        <url>https://github.com/qoobots/openagent/issues</url>
     </issueManagement>
 
     <!-- 持续集成 -->
     <ciManagement>
         <system>GitHub Actions</system>
-        <url>https://github.com/qoobot-com/openagent/actions</url>
+        <url>https://github.com/qoobots/openagent/actions</url>
     </ciManagement>
 
 </project>
